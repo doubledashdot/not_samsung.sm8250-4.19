@@ -562,7 +562,8 @@ static inline bool system_supports_sve(void)
 
 static inline bool system_supports_cnp(void)
 {
-	return false;
+	return IS_ENABLED(CONFIG_ARM64_CNP) &&
+		cpus_have_const_cap(ARM64_HAS_CNP);
 }
 
 #define ARM64_SSBD_UNKNOWN		-1
