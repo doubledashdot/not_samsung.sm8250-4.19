@@ -3185,30 +3185,6 @@ void blk_account_io_done(struct request *req, u64 now)
 		req->q->flush_ios++;
 }
 
-#ifdef CONFIG_PM
-/*
- * Don't process normal requests when queue is suspended
- * or in the process of suspending/resuming
- */
-static bool blk_pm_allow_request(struct request *rq)
-{
-	switch (rq->q->rpm_status) {
-	case RPM_RESUMING:
-	case RPM_SUSPENDING:
-		return rq->rq_flags & RQF_PM;
-	case RPM_SUSPENDED:
-		return false;
-	default:
-		return true;
-	}
-}
-#else
-static bool blk_pm_allow_request(struct request *rq)
-{
-	return true;
-}
-#endif
-
 void blk_account_io_start(struct request *rq, bool new_io)
 {
 	struct hd_struct *part;
@@ -3255,16 +3231,15 @@ static struct request *elv_next_request(struct request_queue *q)
 
 	while (1) {
 		list_for_each_entry(rq, &q->queue_head, queuelist) {
-			if (blk_pm_allow_request(rq))
-				return rq;
 
-			if (rq->rq_flags & RQF_SOFTBARRIER) {
 #ifdef CONFIG_PM
-	                        if(rq->q && (rq->q->rpm_status == RPM_SUSPENDING) && !(rq->rq_flags & RQF_PM))
-        				continue;
+			/*
+			 * If a request gets queued in state RPM_SUSPENDED
+			 * then that's a kernel bug.
+			 */
+			WARN_ON_ONCE(q->rpm_status == RPM_SUSPENDED);
 #endif
-                                break;
-                        }
+			return rq;
 		}
 
 		/*
