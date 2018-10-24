@@ -2008,9 +2008,6 @@ void blk_requeue_request(struct request_queue *q, struct request *rq)
 	trace_block_rq_requeue(q, rq);
 	rq_qos_requeue(q, rq);
 
-	if (rq->rq_flags & RQF_QUEUED)
-		blk_queue_end_tag(q, rq);
-
 	BUG_ON(blk_queued_rq(rq));
 
 	blk_account_tw_io(q, rq->cmd_flags, (-1 * blk_rq_bytes(rq)));
@@ -3620,9 +3617,6 @@ void blk_finish_request(struct request *req, blk_status_t error)
 
 	if (req->rq_flags & RQF_STATS)
 		blk_stat_add(req, now);
-
-	if (req->rq_flags & RQF_QUEUED)
-		blk_queue_end_tag(q, req);
 
 	BUG_ON(blk_queued_rq(req));
 
