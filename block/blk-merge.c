@@ -818,8 +818,6 @@ static struct request *attempt_merge(struct request_queue *q,
 	blk_queue_io_vol_merge(q, next->cmd_flags, -1, 0);
 
 	req->ioprio = ioprio_best(req->ioprio, next->ioprio);
-	if (blk_rq_cpu_valid(next))
-		req->cpu = next->cpu;
 
 	/*
 	 * ownership of bio passed from next to req, return 'next' for
