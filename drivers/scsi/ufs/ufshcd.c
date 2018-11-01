@@ -13179,6 +13179,7 @@ int ufshcd_alloc_host(struct device *dev, struct ufs_hba **hba_handle)
 		err = -ENOMEM;
 		goto out_error;
 	}
+
 	hba = shost_priv(host);
 	hba->host = host;
 	hba->dev = dev;
