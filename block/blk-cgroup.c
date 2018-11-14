@@ -350,8 +350,7 @@ static void blkg_destroy_all(struct request_queue *q)
 {
 	struct blkcg_gq *blkg, *n;
 
-	lockdep_assert_held(q->queue_lock);
-
+	spin_lock_irq(q->queue_lock);
 	list_for_each_entry_safe(blkg, n, &q->blkg_list, q_node) {
 		struct blkcg *blkcg = blkg->blkcg;
 
@@ -361,6 +360,7 @@ static void blkg_destroy_all(struct request_queue *q)
 	}
 
 	q->root_blkg = NULL;
+	spin_unlock_irq(q->queue_lock);
 }
 
 /*
@@ -1201,9 +1201,7 @@ int blkcg_init_queue(struct request_queue *q)
 	return 0;
 
 err_destroy_all:
-	spin_lock_irq(q->queue_lock);
 	blkg_destroy_all(q);
-	spin_unlock_irq(q->queue_lock);
 	return ret;
 err_unlock:
 	spin_unlock_irq(q->queue_lock);
@@ -1241,10 +1239,7 @@ void blkcg_drain_queue(struct request_queue *q)
  */
 void blkcg_exit_queue(struct request_queue *q)
 {
-	spin_lock_irq(q->queue_lock);
 	blkg_destroy_all(q);
-	spin_unlock_irq(q->queue_lock);
-
 	blk_throtl_exit(q);
 }
 
