@@ -503,7 +503,7 @@ static int do_fslog(int type, struct fslog_data *fl_data, char __user *buf, int 
 		error = 0;
 		if (!len)
 			goto out;
-		if (!access_ok(VERIFY_WRITE, buf, len)) {
+		if (!access_ok(buf, len)) {
 			error = -EFAULT;
 			goto out;
 		}

@@ -2596,7 +2596,7 @@ noinline static int copy_clone_args_from_user(struct kernel_clone_args *kargs,
 	if (unlikely(size < sizeof(struct clone_args)))
 		return -EINVAL;
 
-	if (unlikely(!access_ok(VERIFY_READ, uargs, size)))
+	if (unlikely(!access_ok(uargs, size)))
 		return -EFAULT;
 
 	if (unlikely(args.set_tid_size > MAX_PID_NS_LEVEL))

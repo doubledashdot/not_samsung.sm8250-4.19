@@ -1623,7 +1623,7 @@ int do_syslog(int type, char __user *buf, int len, int source)
 			return -EINVAL;
 		if (!len)
 			return 0;
-		if (!access_ok(VERIFY_WRITE, buf, len))
+		if (!access_ok(buf, len))
 			return -EFAULT;
 		error = wait_event_interruptible(log_wait,
 						 syslog_seq != log_next_seq);
@@ -1641,7 +1641,7 @@ int do_syslog(int type, char __user *buf, int len, int source)
 			return -EINVAL;
 		if (!len)
 			return 0;
-		if (!access_ok(VERIFY_WRITE, buf, len))
+		if (!access_ok(buf, len))
 			return -EFAULT;
 		// SecProductFeature_KNOX.SEC_PRODUCT_FEATURE_KNOX_SUPPORT_MDM {
 		/*
@@ -1723,7 +1723,7 @@ int do_syslog(int type, char __user *buf, int len, int source)
 		error = 0;
 		if (!len)
 			goto out;
-		if (!access_ok(VERIFY_WRITE, buf, len)) {
+		if (!access_ok(buf, len)) {
 			error = -EFAULT;
 			goto out;
 		}
