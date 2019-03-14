@@ -1555,6 +1555,7 @@ int compat_import_iovec(int type, const struct compat_iovec __user * uvector,
 	*iov = p == *iov ? NULL : p;
 	return 0;
 }
+EXPORT_SYMBOL(compat_import_iovec);
 #endif
 
 int import_single_range(int rw, void __user *buf, size_t len,
