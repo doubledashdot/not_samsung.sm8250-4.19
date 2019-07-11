@@ -95,6 +95,8 @@ int __msm_drm_notifier_call_chain(unsigned long event, void *data)
 }
 #endif
 
+static struct kmem_cache *kmem_vblank_work_pool;
+
 static void msm_fb_output_poll_changed(struct drm_device *dev)
 {
 	struct msm_drm_private *priv = NULL;
