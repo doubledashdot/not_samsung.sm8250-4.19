@@ -41,6 +41,7 @@
 #include <asm/debug-monitors.h>
 #include <asm/esr.h>
 #include <asm/kasan.h>
+#include <asm/kprobes.h>
 #include <asm/sysreg.h>
 #include <asm/system_misc.h>
 #include <linux/pgtable.h>
@@ -780,7 +781,7 @@ int handle_guest_sea(phys_addr_t addr, unsigned int esr)
 	return ghes_notify_sea();
 }
 
-asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
+asmlinkage void do_mem_abort(unsigned long addr, unsigned int esr,
 					 struct pt_regs *regs)
 {
 	const struct fault_info *inf = esr_to_fault_info(esr);
@@ -804,16 +805,17 @@ asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
 	info.si_addr  = (void __user *)addr;
 	arm64_notify_die(inf->name, regs, &info, esr);
 }
+NOKPROBE_SYMBOL(do_mem_abort);
 
-asmlinkage void __exception do_el0_irq_bp_hardening(void)
+asmlinkage void do_el0_irq_bp_hardening(void)
 {
 	/* PC has already been checked in entry.S */
 	arm64_apply_bp_hardening();
 }
+NOKPROBE_SYMBOL(do_el0_irq_bp_hardening);
 
-asmlinkage void __exception do_el0_ia_bp_hardening(unsigned long addr,
-						   unsigned int esr,
-						   struct pt_regs *regs)
+asmlinkage void do_el0_ia_bp_hardening(unsigned long addr,  unsigned int esr,
+				       struct pt_regs *regs)
 {
 	/*
 	 * We've taken an instruction abort from userspace and not yet
@@ -826,11 +828,10 @@ asmlinkage void __exception do_el0_ia_bp_hardening(unsigned long addr,
 	local_irq_enable();
 	do_mem_abort(addr, esr, regs);
 }
+NOKPROBE_SYMBOL(do_el0_ia_bp_hardening);
 
-
-asmlinkage void __exception do_sp_pc_abort(unsigned long addr,
-					   unsigned int esr,
-					   struct pt_regs *regs)
+asmlinkage void do_sp_pc_abort(unsigned long addr, unsigned int esr,
+			       struct pt_regs *regs)
 {
 	struct siginfo info;
 
@@ -850,6 +851,7 @@ asmlinkage void __exception do_sp_pc_abort(unsigned long addr,
 	info.si_addr  = (void __user *)addr;
 	arm64_notify_die("SP/PC alignment exception", regs, &info, esr);
 }
+NOKPROBE_SYMBOL(do_sp_pc_abort);
 
 int __init early_brk64(unsigned long addr, unsigned int esr,
 		       struct pt_regs *regs);
@@ -885,8 +887,7 @@ void __init hook_debug_fault_code(int nr,
 #ifdef CONFIG_ARM64_ERRATUM_1463225
 DECLARE_PER_CPU(int, __in_cortex_a76_erratum_1463225_wa);
 
-static int __exception
-cortex_a76_erratum_1463225_debug_handler(struct pt_regs *regs)
+static int cortex_a76_erratum_1463225_debug_handler(struct pt_regs *regs)
 {
 	if (user_mode(regs))
 		return 0;
@@ -905,14 +906,14 @@ cortex_a76_erratum_1463225_debug_handler(struct pt_regs *regs)
 	return 1;
 }
 #else
-static int __exception
-cortex_a76_erratum_1463225_debug_handler(struct pt_regs *regs)
+static int cortex_a76_erratum_1463225_debug_handler(struct pt_regs *regs)
 {
 	return 0;
 }
 #endif /* CONFIG_ARM64_ERRATUM_1463225 */
+NOKPROBE_SYMBOL(cortex_a76_erratum_1463225_debug_handler);
 
-asmlinkage int __exception do_debug_exception(unsigned long addr_if_watchpoint,
+asmlinkage int do_debug_exception(unsigned long addr_if_watchpoint,
 					       unsigned int esr,
 					       struct pt_regs *regs)
 {

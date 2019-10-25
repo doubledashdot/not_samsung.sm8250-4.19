@@ -46,6 +46,7 @@
 #include <asm/esr.h>
 #include <asm/insn.h>
 #include <asm/patching.h>
+#include <asm/kprobes.h>
 #include <asm/traps.h>
 #include <asm/smp.h>
 #include <asm/stack_pointer.h>
@@ -516,7 +517,7 @@ void arm64_notify_segfault(unsigned long addr)
 	force_signal_inject(SIGSEGV, code, addr);
 }
 
-asmlinkage void __exception do_undefinstr(struct pt_regs *regs)
+asmlinkage void do_undefinstr(struct pt_regs *regs)
 {
 	/* check for AArch32 breakpoint instructions */
 	if (!aarch32_break_handler(regs))
@@ -528,6 +529,7 @@ asmlinkage void __exception do_undefinstr(struct pt_regs *regs)
 	force_signal_inject(SIGILL, ILL_ILLOPC, regs->pc);
 	BUG_ON(!user_mode(regs));
 }
+NOKPROBE_SYMBOL(do_undefinstr);
 
 void cpu_enable_cache_maint_trap(const struct arm64_cpu_capabilities *__unused)
 {
@@ -774,7 +776,7 @@ static struct sys64_hook cp15_64_hooks[] = {
 	{},
 };
 
-asmlinkage void __exception do_cp15instr(unsigned int esr, struct pt_regs *regs)
+asmlinkage void do_cp15instr(unsigned int esr, struct pt_regs *regs)
 {
 	struct sys64_hook *hook, *hook_base;
 
@@ -812,9 +814,10 @@ asmlinkage void __exception do_cp15instr(unsigned int esr, struct pt_regs *regs)
 	 */
 	do_undefinstr(regs);
 }
+NOKPROBE_SYMBOL(do_cp15instr);
 #endif
 
-asmlinkage void __exception do_sysinstr(unsigned int esr, struct pt_regs *regs)
+asmlinkage void do_sysinstr(unsigned int esr, struct pt_regs *regs)
 {
 	struct sys64_hook *hook;
 
@@ -831,6 +834,7 @@ asmlinkage void __exception do_sysinstr(unsigned int esr, struct pt_regs *regs)
 	 */
 	do_undefinstr(regs);
 }
+NOKPROBE_SYMBOL(do_sysinstr);
 
 static const char *esr_class_str[] = {
 	[0 ... ESR_ELx_EC_MAX]		= "UNRECOGNIZED EC",
