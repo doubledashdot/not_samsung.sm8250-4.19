@@ -25,12 +25,10 @@
 
 #include <asm/page.h>
 
-struct mm_struct;
 struct cpu_suspend_ctx;
 
 extern void cpu_cache_off(void);
 extern void cpu_do_idle(void);
-extern void cpu_do_switch_mm(unsigned long pgd_phys, struct mm_struct *mm);
 extern void cpu_reset(unsigned long addr) __attribute__((noreturn));
 void cpu_soft_restart(phys_addr_t cpu_reset,
 		unsigned long addr) __attribute__((noreturn));
