@@ -750,13 +750,11 @@ static int pm8xxx_rtc_probe(struct platform_device *pdev)
 #endif
 	
 	/* Register the RTC device */
-	rtc_dd->rtc = devm_rtc_device_register(&pdev->dev, "pm8xxx_rtc",
-					       &pm8xxx_rtc_ops, THIS_MODULE);
-	if (IS_ERR(rtc_dd->rtc)) {
-		dev_err(&pdev->dev, "%s: RTC registration failed (%ld)\n",
-			__func__, PTR_ERR(rtc_dd->rtc));
+	rtc_dd->rtc = devm_rtc_allocate_device(&pdev->dev);
+	if (IS_ERR(rtc_dd->rtc))
 		return PTR_ERR(rtc_dd->rtc);
-	}
+
+	rtc_dd->rtc->ops = &pm8xxx_rtc_ops;
 
 	/* Request the alarm IRQ */
 	rc = devm_request_any_context_irq(&pdev->dev, rtc_dd->rtc_alarm_irq,
@@ -772,9 +770,7 @@ static int pm8xxx_rtc_probe(struct platform_device *pdev)
 	sapa_init(rtc_dd);
 #endif
 	
-	dev_dbg(&pdev->dev, "Probe success !!\n");
-
-	return 0;
+	return rtc_register_device(rtc_dd->rtc);
 }
 
 #ifdef CONFIG_PM_SLEEP
