@@ -4769,6 +4769,8 @@ static void __sched notrace __schedule(bool preempt)
 		 */
 		++*switch_count;
 
+		psi_sched_switch(prev, next, !task_on_rq_queued(prev));
+
 		trace_sched_switch(preempt, prev, next);
 #ifdef CONFIG_SCHED_INFO
 		run_delay_next_task = next->sched_info.run_delay - next->sched_info.last_sum_run_delay;
