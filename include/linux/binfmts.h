@@ -156,7 +156,6 @@ extern int do_execveat(int, struct filename *,
 		       const char __user * const __user *,
 		       const char __user * const __user *,
 		       int);
-int do_execve_file(struct file *file, void *__argv, void *__envp);
 
 
 static inline bool task_has_exec_prefix(struct task_struct *tsk, const char *prefix)
