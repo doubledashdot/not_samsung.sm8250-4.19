@@ -1,7 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2008-2021, The Linux Foundation. All rights reserved.
- * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  */
 #ifndef __KGSL_H
 #define __KGSL_H
@@ -58,11 +57,13 @@
 /*
  * SCRATCH MEMORY: The scratch memory is one page worth of data that
  * is mapped into the GPU. This allows for some 'shared' data between
- * the GPU and CPU.
+ * the GPU and CPU. For example, it will be used by the GPU to write
+ * each updated RPTR for each RB.
  *
  * Used Data:
  * Offset: Length(bytes): What
  * 0x0: 4 * KGSL_PRIORITY_MAX_RB_LEVELS: RB0 RPTR
+ * 0x10: 8 * KGSL_PRIORITY_MAX_RB_LEVELS: RB0 CTXT RESTORE ADDR
  */
 
 /* Shadow global helpers */
@@ -70,10 +71,12 @@
 #define SCRATCH_RPTR_GPU_ADDR(dev, id) \
 	((dev)->scratch.gpuaddr + SCRATCH_RPTR_OFFSET(id))
 
-/* OFFSET to KMD postamble packets in scratch buffer */
-#define SCRATCH_POSTAMBLE_OFFSET (100 * sizeof(u64))
-#define SCRATCH_POSTAMBLE_ADDR(dev) \
-	((dev)->scratch.gpuaddr + SCRATCH_POSTAMBLE_OFFSET)
+#define SCRATCH_PREEMPTION_CTXT_RESTORE_ADDR_OFFSET(id) \
+	(SCRATCH_RPTR_OFFSET(KGSL_PRIORITY_MAX_RB_LEVELS) + \
+	((id) * sizeof(uint64_t)))
+#define SCRATCH_PREEMPTION_CTXT_RESTORE_GPU_ADDR(dev, id) \
+	((dev)->scratch.gpuaddr + \
+	SCRATCH_PREEMPTION_CTXT_RESTORE_ADDR_OFFSET(id))
 
 /* Timestamp window used to detect rollovers (half of integer range) */
 #define KGSL_TIMESTAMP_WINDOW 0x80000000
