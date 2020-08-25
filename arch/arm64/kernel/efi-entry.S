@@ -26,8 +26,7 @@
 	 *    * Icache and Dcache on
 	 *
 	 * We will most likely be running from some place other than where
-	 * we want to be. The kernel image wants to be placed at TEXT_OFFSET
-	 * from start of RAM.
+	 * we want to be. The kernel image wants to be placed at the start of RAM.
 	 */
 ENTRY(entry)
 	/*
