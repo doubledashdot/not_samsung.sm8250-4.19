@@ -359,10 +359,6 @@ qcom_cpufreq_hw_target_index(struct cpufreq_policy *policy,
 	sec_smem_clk_osm_add_log_cpufreq(policy->cpu,
 				policy->freq_table[index].frequency, policy->kobj.name);
 
-	arch_set_freq_scale(policy->related_cpus,
-			    policy->freq_table[index].frequency,
-			    policy->cpuinfo.max_freq);
-
 	return 0;
 }
 
