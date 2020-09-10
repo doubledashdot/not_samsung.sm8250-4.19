@@ -31,6 +31,7 @@
 #include <linux/nmi.h>
 #include <linux/percpu.h>
 #include <linux/kmod.h>
+#include <linux/kprobes.h>
 #include <linux/vmalloc.h>
 #include <linux/kernel_stat.h>
 #include <linux/start_kernel.h>
@@ -140,6 +141,7 @@ static void __ref do_deferred_initcalls(struct work_struct *work)
 			fn < __deferred_initcall_end; fn++)
 		do_one_initcall(initcall_from_entry(fn));
 
+	kprobe_free_init_mem();
 	ftrace_free_init_mem();
 	free_initmem();
 }
@@ -1221,6 +1223,7 @@ static int __ref kernel_init(void *unused)
 	/* need to finish all async __init code before freeing the memory */
 	async_synchronize_full();
 #ifndef CONFIG_DEFERRED_INITCALLS
+	kprobe_free_init_mem();
 	ftrace_free_init_mem();
 	free_initmem();
 #endif
