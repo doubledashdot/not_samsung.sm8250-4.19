@@ -369,12 +369,8 @@ static inline void kgsl_free_sgt(struct sg_table *sgt)
  */
 #if !defined(CONFIG_QCOM_KGSL_USE_SHMEM) && \
 	!defined(CONFIG_ALLOC_BUFFERS_IN_4K_CHUNKS)
-static inline int kgsl_get_page_size(size_t size, unsigned int align,
-			struct kgsl_memdesc *memdesc)
+static inline int kgsl_get_page_size(size_t size, unsigned int align)
 {
-	if (memdesc->priv & KGSL_MEMDESC_USE_SHMEM)
-		return PAGE_SIZE;
-
 #ifdef CONFIG_HUGEPAGE_POOL
 	if (align >= ilog2(SZ_2M) && size >= SZ_2M &&
 		kgsl_pool_avaialable(SZ_2M))
