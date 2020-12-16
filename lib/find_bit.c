@@ -19,7 +19,8 @@
 #include <linux/bitops.h>
 #include <linux/bitmap.h>
 #include <linux/export.h>
-#include <linux/kernel.h>
+#include <linux/math.h>
+#include <linux/swab.h>
 
 #if !defined(find_next_bit) || !defined(find_next_zero_bit) || \
 		!defined(find_next_and_bit)

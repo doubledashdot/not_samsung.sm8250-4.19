@@ -2,7 +2,7 @@
 #ifndef _LINUX_UNITS_H
 #define _LINUX_UNITS_H
 
-#include <linux/kernel.h>
+#include <linux/math.h>
 
 #define HZ_PER_KHZ		1000UL
 #define KHZ_PER_MHZ		1000UL

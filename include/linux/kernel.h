@@ -9,10 +9,13 @@
 #include <linux/compiler.h>
 #include <linux/bitops.h>
 #include <linux/log2.h>
+#include <linux/math.h>
 #include <linux/typecheck.h>
 #include <linux/printk.h>
 #include <linux/build_bug.h>
+
 #include <asm/byteorder.h>
+
 #include <uapi/linux/kernel.h>
 #include <linux/limits.h>
 
@@ -100,22 +103,6 @@
 #endif
 
 /**
- * roundup - round up to the next specified multiple
- * @x: the value to up
- * @y: multiple to round up to
- *
- * Rounds @x up to next multiple of @y. If @y will always be a power
- * of 2, consider using the faster round_up().
- *
- * The `const' here prevents gcc-3.3 from calling __divdi3
- */
-#define roundup(x, y) (					\
-{							\
-	const typeof(y) __y = y;			\
-	(((x) + (__y - 1)) / __y) * __y;		\
-}							\
-)
-/**
  * rounddown - round down to next specified multiple
  * @x: the value to round
  * @y: multiple to round down to
@@ -175,20 +162,6 @@
 
 #define _RET_IP_		(unsigned long)__builtin_return_address(0)
 #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
-
-#ifdef CONFIG_LBDAF
-# include <asm/div64.h>
-# define sector_div(a, b) do_div(a, b)
-#else
-# define sector_div(n, b)( \
-{ \
-	int _res; \
-	_res = (n) % (b); \
-	(n) /= (b); \
-	_res; \
-} \
-)
-#endif
 
 /**
  * upper_32_bits - return bits 32-63 of a number
@@ -283,25 +256,6 @@ extern void __cant_sleep(const char *file, int line, int preempt_offset);
 	__builtin_types_compatible_p(typeof(x),   signed type) ||	\
 	__builtin_types_compatible_p(typeof(x), unsigned type),		\
 	({ signed type __x = (x); __x < 0 ? -__x : __x; }), other)
-
-/**
- * reciprocal_scale - "scale" a value into range [0, ep_ro)
- * @val: value
- * @ep_ro: right open interval endpoint
- *
- * Perform a "reciprocal multiplication" in order to "scale" a value into
- * range [0, @ep_ro), where the upper interval endpoint is right-open.
- * This is useful, e.g. for accessing a index of an array containing
- * @ep_ro elements, for example. Think of it as sort of modulus, only that
- * the result isn't that of modulo. ;) Note that if initial input is a
- * small value, then result will return 0.
- *
- * Return: a result based on @val in interval [0, @ep_ro).
- */
-static inline u32 reciprocal_scale(u32 val, u32 ep_ro)
-{
-	return (u32)(((u64) val * ep_ro) >> 32);
-}
 
 #if defined(CONFIG_MMU) && \
 	(defined(CONFIG_PROVE_LOCKING) || defined(CONFIG_DEBUG_ATOMIC_SLEEP))
@@ -506,15 +460,6 @@ extern int kernel_text_address(unsigned long addr);
 extern int func_ptr_is_kernel_text(void *ptr);
 
 unsigned long int_sqrt(unsigned long);
-
-#if BITS_PER_LONG < 64
-u32 int_sqrt64(u64 x);
-#else
-static inline u32 int_sqrt64(u64 x)
-{
-	return (u32)int_sqrt(x);
-}
-#endif
 
 extern void bust_spinlocks(int yes);
 extern int oops_in_progress;		/* If set, an oops, panic(), BUG() or die() is in progress */
