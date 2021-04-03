@@ -1110,7 +1110,11 @@ static void __init do_initcalls(void)
 		/* Parser modifies command_line, restore it each time */
 		strcpy(command_line, saved_command_line);
 		do_initcall_level(level, command_line);
+		/* finish all async calls that affects the next level before proceeding */
+		if (level <= 1 || level == 4 || level == 6)
+			async_synchronize_full();
 	}
+	async_synchronize_full();
 
 	kfree(command_line);
 }
