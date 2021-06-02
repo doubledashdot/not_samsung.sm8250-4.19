@@ -430,16 +430,6 @@ sapa_save_kparam(struct pm8xxx_rtc *rtc_dd)
 
 #endif
 
-
-static int sapa_is_testalarm(struct rtc_wkalrm *alarm)
-{
-	unsigned long alm_sec;
-
-	rtc_tm_to_time(&alarm->time, &alm_sec);
-	return (alm_sec % 2);
-}
-
-
 static int
 sapa_rtc_getalarm(struct device *dev, struct rtc_wkalrm *alarm)
 {
@@ -572,51 +562,6 @@ sapa_init(struct pm8xxx_rtc *rtc_dd)
 	}
 }
 
-
-static void
-sapa_exit(struct pm8xxx_rtc *rtc_dd)
-{
-	struct rtc_wkalrm *alarm;
-	int rc;
-
-	pr_info("%s\n", __func__);
-
-	if (rtc_dd->lpm_mode && rtc_dd->sapa.enabled) {
-		cancel_work_sync(&rtc_dd->check_func);
-		alarm_cancel(&rtc_dd->check_poll);
-		wake_lock_destroy(&rtc_dd->wakelock);
-	}
-
-	if (!rtc_dd->triggered) {
-		if (rtc_dd->sapa.enabled) {
-			unsigned long next_power_on;
-			int res = sapa_check_state(rtc_dd, &next_power_on);
-
-			if (res == SAPA_EXPIRED && !sapa_is_testalarm(&rtc_dd->sapa)) {
-				rtc_time_to_tm(next_power_on, &rtc_dd->sapa.time);
-				pr_info("%s: adjust %lu\n", __func__, next_power_on);
-			} else if (res >= SAPA_EXPIRED) {
-				rtc_dd->sapa.enabled = 0;
-				pr_info("%s: over - clear\n", __func__);
-			}
-		}
-	} else {
-		rtc_dd->sapa.enabled = 0;
-	}
-
-	alarm = &rtc_dd->sapa;
-	sapa_normalize_alarm(alarm);
-	rc = pm8xxx_rtc_set_alarm(rtc_dd->rtc_dev, alarm);
-	if (rc < 0)
-		pr_err("%s: err=%d\n", __func__, rc);
-
-	rc = pm8xxx_rtc_read_alarm(rtc_dd->rtc_dev, alarm);
-	if (!rc) {
-		pr_info("%s: %d-%02d-%02d %02d:%02d:%02d\n", __func__,
-			alarm->time.tm_year, alarm->time.tm_mon, alarm->time.tm_mday,
-			alarm->time.tm_hour, alarm->time.tm_min, alarm->time.tm_sec);
-	}
-}
 #endif /*CONFIG_RTC_AUTO_PWRON*/
 
 static const struct rtc_class_ops pm8xxx_rtc_ops = {
@@ -840,28 +785,36 @@ static int pm8xxx_rtc_probe(struct platform_device *pdev)
 	return 0;
 }
 
-#ifdef CONFIG_RTC_AUTO_PWRON
-static void pm8xxx_rtc_shutdown(struct platform_device *pdev)
+#ifdef CONFIG_PM_SLEEP
+static int pm8xxx_rtc_restore(struct device *dev)
 {
-	struct pm8xxx_rtc *rtc_dd;
+	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
+	int rc;
 
-	if (!pdev) {
-		pr_err("%s: spmi device not found\n", __func__);
-		return;
+	/* Request the alarm IRQ */
+	rc = devm_request_any_context_irq(rtc_dd->rtc_dev,
+					  rtc_dd->rtc_alarm_irq,
+					  pm8xxx_alarm_trigger,
+					  IRQF_TRIGGER_RISING,
+					  "pm8xxx_rtc_alarm", rtc_dd);
+	if (rc < 0) {
+		dev_err(rtc_dd->rtc_dev, "Request IRQ failed (%d)\n", rc);
+		return rc;
 	}
 
-	rtc_dd = dev_get_drvdata(&pdev->dev);
+	return pm8xxx_rtc_enable(rtc_dd);
+}
 
-	if (!rtc_dd) {
-		pr_err("%s: rtc driver data not found\n", __func__);
-		return;
-	}
-	
-	sapa_exit(rtc_dd);
+static int pm8xxx_rtc_freeze(struct device *dev)
+{
+	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
+
+	devm_free_irq(rtc_dd->rtc_dev, rtc_dd->rtc_alarm_irq, rtc_dd);
+
+	return 0;
 }
 #endif
 
-#ifdef CONFIG_PM_SLEEP
 static int pm8xxx_rtc_resume(struct device *dev)
 {
 	struct pm8xxx_rtc *rtc_dd = dev_get_drvdata(dev);
@@ -881,11 +834,13 @@ static int pm8xxx_rtc_suspend(struct device *dev)
 
 	return 0;
 }
-#endif
 
-static SIMPLE_DEV_PM_OPS(pm8xxx_rtc_pm_ops,
-			 pm8xxx_rtc_suspend,
-			 pm8xxx_rtc_resume);
+static const struct dev_pm_ops pm8xxx_rtc_pm_ops = {
+	.freeze = pm8xxx_rtc_freeze,
+	.restore = pm8xxx_rtc_restore,
+	.suspend = pm8xxx_rtc_suspend,
+	.resume = pm8xxx_rtc_resume,
+};
 
 static void pm8xxx_rtc_shutdown(struct platform_device *pdev)
 {
@@ -896,9 +851,6 @@ static void pm8xxx_rtc_shutdown(struct platform_device *pdev)
 
 static struct platform_driver pm8xxx_rtc_driver = {
 	.probe		= pm8xxx_rtc_probe,
-#ifdef CONFIG_RTC_AUTO_PWRON
-	.shutdown	= pm8xxx_rtc_shutdown,
-#endif
 	.driver	= {
 		.name		= "rtc-pm8xxx",
 		.pm		= &pm8xxx_rtc_pm_ops,
