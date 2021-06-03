@@ -3312,7 +3312,7 @@ static void __ufshcd_hibern8_release(struct ufs_hba *hba, bool no_sched)
 	if (delay_in_jiffies == 1)
 		delay_in_jiffies++;
 
-	schedule_delayed_work(&hba->hibern8_on_idle.enter_work,
+	queue_delayed_work(system_power_efficient_wq, &hba->hibern8_on_idle.enter_work,
 			      delay_in_jiffies);
 }
 

@@ -4450,7 +4450,7 @@ static void unaccount_event(struct perf_event *event)
 
 	if (dec) {
 		if (!atomic_add_unless(&perf_sched_count, -1, 1))
-			schedule_delayed_work(&perf_sched_work, HZ);
+			queue_delayed_work(system_power_efficient_wq, &perf_sched_work, HZ);
 	}
 
 	unaccount_event_cpu(event, event->cpu);

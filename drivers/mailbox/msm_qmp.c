@@ -276,7 +276,7 @@ static void qmp_notify_timeout(struct work_struct *work)
 
 static inline void qmp_schedule_tx_timeout(struct qmp_mbox *mbox)
 {
-	schedule_delayed_work(&mbox->dwork, msecs_to_jiffies(QMP_TX_TOUT_MS));
+	queue_delayed_work(system_power_efficient_wq, &mbox->dwork, msecs_to_jiffies(QMP_TX_TOUT_MS));
 }
 
 /**
