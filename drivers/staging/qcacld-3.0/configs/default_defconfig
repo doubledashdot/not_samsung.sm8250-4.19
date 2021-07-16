@@ -98,7 +98,7 @@ endif
 endif
 
 # Make WLAN as open-source driver by default
-WLAN_OPEN_SOURCE := y
+WLAN_OPEN_SOURCE := n
 
 ifeq ($(CONFIG_ICNSS), y)
 	CONFIG_HELIUMPLUS := y
