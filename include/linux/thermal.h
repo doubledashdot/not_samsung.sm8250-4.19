@@ -27,7 +27,7 @@
 #endif
 
 #define THERMAL_TRIPS_NONE	-1
-#define THERMAL_MAX_TRIPS	12
+#define THERMAL_MAX_TRIPS	16
 
 /* invalid cooling state */
 #define THERMAL_CSTATE_INVALID -1UL
