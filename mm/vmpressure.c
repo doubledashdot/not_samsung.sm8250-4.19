@@ -255,6 +255,9 @@ static void vmpressure_memcg(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
 {
 	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
 
+	if (mem_cgroup_disabled())
+		return;
+
 	/*
 	 * Here we only want to account pressure that userland is able to
 	 * help us with. For example, suppose that DMA zone is under
