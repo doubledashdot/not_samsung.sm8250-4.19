@@ -2289,6 +2289,10 @@ static QDF_STATUS sap_goto_starting(struct sap_context *sap_ctx,
 			     eSAP_CHANNEL_CHANGE_EVENT,
 			     (void *)eSAP_STATUS_SUCCESS);
 	sap_dfs_set_current_channel(sap_ctx);
+	/* Reset radar found flag before start sap, the flag will
+	 * be set when radar found in CAC wait.
+	 */
+	mac_ctx->sap.SapDfsInfo.sap_radar_found_status = false;
 
 	QDF_TRACE(QDF_MODULE_ID_SAP, QDF_TRACE_LEVEL_DEBUG, "%s: session: %d",
 		  __func__, sap_ctx->sessionId);
@@ -2640,6 +2644,7 @@ static QDF_STATUS sap_fsm_state_starting(struct sap_context *sap_ctx,
 				 */
 				sap_propagate_cac_events(sap_ctx);
 
+				mac_ctx->sap.SapDfsInfo.sap_radar_found_status = false;
 				wlansap_start_beacon_req(sap_ctx);
 			}
 		}
