@@ -180,18 +180,13 @@ static void cpuidle_idle_call(void)
 
 		next_state = cpuidle_find_deepest_state(drv, dev);
 		call_cpuidle(drv, dev, next_state);
-	} else if (drv->state_count > 1) {
-		bool stop_tick = true;
-
+	} else {
 		/*
 		 * Ask the cpuidle framework to choose a convenient idle state.
 		 */
-		next_state = cpuidle_select(drv, dev, &stop_tick);
+		next_state = cpuidle_select(drv, dev);
 
-		if (stop_tick || tick_nohz_tick_stopped())
-			tick_nohz_idle_stop_tick();
-		else
-			tick_nohz_idle_retain_tick();
+		tick_nohz_idle_stop_tick();
 
 		entered_state = call_cpuidle(drv, dev, next_state);
 		/*
