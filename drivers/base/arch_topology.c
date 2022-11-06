@@ -15,6 +15,7 @@
 #include <linux/slab.h>
 #include <linux/string.h>
 #include <linux/sched/topology.h>
+#include <linux/sched/sysctl.h>
 #include <linux/cpuset.h>
 
 #if IS_ENABLED(CONFIG_CPU_CAPACITY_FIXUP)
@@ -131,6 +132,9 @@ static ssize_t cpu_capacity_show(struct device *dev,
 			return sprintf(buf, "%lu\n", left > right ? left : right);
 	}
 #endif
+
+	if (is_sched_lib_based_app(current->pid))
+		return scnprintf(buf, PAGE_SIZE, "%lu\n", SCHED_CAPACITY_SCALE);
 
 	return sprintf(buf, "%lu\n", topology_get_cpu_scale(NULL, cpu->dev.id));
 }
