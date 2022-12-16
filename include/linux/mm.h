@@ -3056,7 +3056,6 @@ static inline void record_memsize_reserved(const char *name, phys_addr_t base,
 				    phys_addr_t size, bool nomap,
 				    bool reusable) { }
 #endif
-extern bool ion_account_print_usage(void);
 
 #endif /* __KERNEL__ */
 #endif /* _LINUX_MM_H */
