@@ -407,7 +407,7 @@ static int alarmtimer_suspend(struct device *dev)
 		pr_info("alarmtimer suspending blocked by %ps\n", min_alarm->function);
 		log_suspend_abort_reason("alarmtimer suspending blocked by %ps\n", min_alarm->function);
 #endif
-		__pm_wakeup_event(ws, ktime_to_ms(min) + 1);
+		__pm_wakeup_event(ws, ktime_to_ms(min) + 10);
 		return -EBUSY;
 	}
 
