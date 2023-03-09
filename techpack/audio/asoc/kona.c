@@ -44,7 +44,6 @@
 #include <linux/mfd/cs35l41/big_data.h>
 #include "../../../sound/soc/samsung/bigdata_cirrus_sysfs_cb.h"
 #endif
-#include <linux/pm_qos.h>
 
 #define DRV_NAME "kona-asoc-snd"
 #define __CHIPSET__ "KONA "
