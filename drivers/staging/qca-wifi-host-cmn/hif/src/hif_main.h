@@ -210,7 +210,9 @@ struct hif_softc {
 	atomic_t tasklet_from_intr;
 	int htc_htt_tx_endpoint;
 	qdf_dma_addr_t mem_pa;
+#ifdef CONFIG_ATH_PROCFS_DIAG_SUPPORT
 	bool athdiag_procfs_inited;
+#endif
 #ifdef FEATURE_NAPI
 	struct qca_napi_data napi_data;
 #endif /* FEATURE_NAPI */

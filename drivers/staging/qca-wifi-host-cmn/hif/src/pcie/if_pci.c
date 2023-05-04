@@ -1125,6 +1125,7 @@ static const struct file_operations hif_pci_runtime_pm_fops = {
 	.llseek         = seq_lseek,
 };
 
+#ifdef CONFIG_WLAN_DEBUGFS
 /**
  * hif_runtime_pm_debugfs_create() - creates runtimepm debugfs entry
  * @sc: pci context
@@ -1148,6 +1149,7 @@ static void hif_runtime_pm_debugfs_remove(struct hif_pci_softc *sc)
 {
 	debugfs_remove(sc->pm_dentry);
 }
+#endif
 
 static void hif_runtime_init(struct device *dev, int delay)
 {
@@ -1199,7 +1201,9 @@ static void hif_pm_runtime_start(struct hif_pci_softc *sc)
 
 	qdf_atomic_set(&sc->pm_state, HIF_PM_RUNTIME_STATE_ON);
 	hif_runtime_init(sc->dev, ol_sc->hif_config.runtime_pm_delay);
+#ifdef CONFIG_WLAN_DEBUGFS
 	hif_runtime_pm_debugfs_create(sc);
+#endif
 }
 
 /**
@@ -1227,7 +1231,10 @@ static void hif_pm_runtime_stop(struct hif_pci_softc *sc)
 
 	qdf_atomic_set(&sc->pm_state, HIF_PM_RUNTIME_STATE_NONE);
 
+#ifdef CONFIG_WLAN_DEBUGFS
 	hif_runtime_pm_debugfs_remove(sc);
+#endif
+
 	qdf_timer_free(&sc->runtime_timer);
 	/* doesn't wait for penting trafic unlike cld-2.0 */
 }
@@ -2608,9 +2615,11 @@ void hif_pci_disable_bus(struct hif_softc *scn)
 	mem = (void __iomem *)sc->mem;
 	if (mem) {
 		hif_dump_pipe_debug_count(scn);
+#ifdef CONFIG_ATH_PROCFS_DIAG_SUPPORT
 		if (scn->athdiag_procfs_inited) {
 			scn->athdiag_procfs_inited = false;
 		}
+#endif
 		sc->hif_pci_deinit(sc);
 		scn->mem = NULL;
 	}

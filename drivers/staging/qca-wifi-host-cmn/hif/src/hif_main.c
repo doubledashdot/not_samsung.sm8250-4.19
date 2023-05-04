@@ -697,9 +697,11 @@ void hif_close(struct hif_opaque_softc *hif_ctx)
 		return;
 	}
 
+#ifdef CONFIG_ATH_PROCFS_DIAG_SUPPORT
 	if (scn->athdiag_procfs_inited) {
 		scn->athdiag_procfs_inited = false;
 	}
+#endif
 
 	if (scn->target_info.hw_name) {
 		char *hw_name = scn->target_info.hw_name;
