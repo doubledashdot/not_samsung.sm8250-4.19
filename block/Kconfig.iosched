@@ -5,13 +5,13 @@ menu "IO Schedulers"
 
 config MQ_IOSCHED_DEADLINE
 	tristate "MQ deadline I/O scheduler"
-	default y
+	default n
 	help
 	  MQ version of the deadline IO scheduler.
 
 config MQ_IOSCHED_KYBER
 	tristate "Kyber I/O scheduler"
-	default y
+	default n
 	help
 	  The Kyber I/O scheduler is a low-overhead scheduler suitable for
 	  multiqueue and other fast devices. Given target latencies for reads and
@@ -20,16 +20,16 @@ config MQ_IOSCHED_KYBER
 
 config MQ_IOSCHED_SSG
 	tristate "SamSung Generic I/O scheduler"
-	default n
-	---help---
+	default y
+	help
 	  SamSung Generic IO scheduler.
 
 config MQ_IOSCHED_SSG_CGROUP
 	tristate "Control Group for SamSung Generic I/O scheduler"
-	default n
+	default y
 	depends on BLK_CGROUP
 	depends on MQ_IOSCHED_SSG
-	---help---
+	help
 	  Control Group for SamSung Generic IO scheduler.
 
 config IOSCHED_BFQ
