@@ -3804,9 +3804,6 @@ static int sd_start_stop_device(struct scsi_disk *sdkp, int start)
 static void sd_shutdown(struct device *dev)
 {
 	struct scsi_disk *sdkp = dev_get_drvdata(dev);
-	struct scsi_device *sdp = to_scsi_device(dev);
-	struct request_queue *q = sdp->request_queue;
-	unsigned long flags;
 
 	if (!sdkp)
 		return;         /* this can happen */
@@ -3822,14 +3819,6 @@ static void sd_shutdown(struct device *dev)
 	if (system_state != SYSTEM_RESTART && sdkp->device->manage_start_stop) {
 		sd_printk(KERN_NOTICE, sdkp, "Stopping disk\n");
 		sd_start_stop_device(sdkp, 0);
-	}
-
-	if (sdp->host->by_ufs) {
-		spin_lock_irqsave(q->queue_lock, flags);
-		queue_flag_set(QUEUE_FLAG_DYING, q);
-		__blk_drain_queue(q, true);
-		queue_flag_set(QUEUE_FLAG_DEAD, q);
-		spin_unlock_irqrestore(q->queue_lock, flags);
 	}
 }
 
