@@ -646,7 +646,7 @@ static void __blk_mq_complete_request(struct request *rq)
 	} else {
 		q->mq_ops->complete(rq);
 	}
-	rq->q->softirq_done_fn(rq);
+	q->mq_ops->complete(rq);
 
 out:
 	put_cpu();
@@ -3155,8 +3155,8 @@ int blk_mq_update_nr_requests(struct request_queue *q, unsigned int nr)
 		}
 		if (ret)
 			break;
-		if (q->elevator && q->elevator->type->ops.mq.depth_updated)
-			q->elevator->type->ops.mq.depth_updated(hctx);
+		if (q->elevator && q->elevator->type->ops.depth_updated)
+			q->elevator->type->ops.depth_updated(hctx);
 	}
 
 	if (!ret)
