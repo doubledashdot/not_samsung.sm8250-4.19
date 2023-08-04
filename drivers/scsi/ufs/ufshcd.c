@@ -10781,11 +10781,13 @@ reinit:
 		scsi_scan_host(hba->host);
 #if defined(CONFIG_UFSFEATURE)
 		ufsf_device_check(hba);
+#ifdef CONFIG_UFSHPB
 		ufsf_hpb_init(&hba->ufsf);
 		if (hba->ufsf.hpb_dev_info.hpb_device) {
 			ufshcd_add_hpb_info_sysfs_node(hba);
 			get_monotonic_boottime(&(hba->SEC_hpb_info.timestamp_old));
 		}
+#endif
 #endif
 		pm_runtime_put_sync(hba->dev);
 	}

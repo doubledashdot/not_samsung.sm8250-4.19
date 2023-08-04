@@ -134,6 +134,7 @@ out:
 	return ret;
 }
 
+#ifdef CONFIG_UFSHPB
 int ufsf_hpb_dt_check(struct ufs_hba *hba)
 {
         struct device_node *node = hba->dev->of_node;
@@ -187,6 +188,7 @@ query_fail:
         pm_runtime_put_sync(hba->dev);
         return 0;
 }
+#endif
 
 void ufsf_device_check(struct ufs_hba *hba)
 {
@@ -201,9 +203,11 @@ void ufsf_device_check(struct ufs_hba *hba)
 	if (ret)
 		return;
 
+#ifdef CONFIG_UFSHPB
         ret = ufsf_hpb_dt_check(hba);
         if (!ret)
                 goto dt_hpb_disable;
+#endif
 
 	ret = ufsf_read_geo_desc(ufsf, UFSFEATURE_SELECTOR);
 	if (ret)
@@ -227,8 +231,8 @@ out_free_mem:
 	ufsf->ufshpb_state = HPB_FAILED;
 #endif
 	return;
-dt_hpb_disable:
 #if defined(CONFIG_UFSHPB)
+dt_hpb_disable:
         /* don't call init handler */
         ufsf->ufshpb_state = HPB_FAILED;
 #endif
