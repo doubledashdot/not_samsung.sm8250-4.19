@@ -118,7 +118,7 @@ static bool blk_mq_check_inflight(struct blk_mq_hw_ctx *hctx,
 	return true;
 }
 
-static void blk_mq_check_disk_inflight(struct blk_mq_hw_ctx *hctx,
+static bool blk_mq_check_disk_inflight(struct blk_mq_hw_ctx *hctx,
                                        struct request *rq, void *priv,
 				       bool reserved)
 {
@@ -131,6 +131,8 @@ static void blk_mq_check_disk_inflight(struct blk_mq_hw_ctx *hctx,
 	 * of part_in_flight function.
 	 */
 	mi->inflight[0]++;
+
+	return true;
 }
 
 
@@ -158,7 +160,7 @@ static bool blk_mq_check_inflight_rw(struct blk_mq_hw_ctx *hctx,
 	return true;
 }
 
-static void blk_mq_check_disk_inflight_rw(struct blk_mq_hw_ctx *hctx,
+static bool blk_mq_check_disk_inflight_rw(struct blk_mq_hw_ctx *hctx,
 				          struct request *rq, void *priv,
 					  bool reserved)
 {
@@ -166,6 +168,8 @@ static void blk_mq_check_disk_inflight_rw(struct blk_mq_hw_ctx *hctx,
 
 	/* This function should be called only when mi->part is a whole disk */
 	mi->inflight[rq_data_dir(rq)]++;
+
+	return true;
 }
 
 void blk_mq_in_flight_rw(struct request_queue *q, struct hd_struct *part,
