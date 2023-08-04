@@ -148,7 +148,7 @@ struct blkcg_gq *blkg_lookup_slowpath(struct blkcg *blkcg,
 	blkg = radix_tree_lookup(&blkcg->blkg_tree, q->id);
 	if (blkg && blkg->q == q) {
 		if (update_hint) {
-			lockdep_assert_held(&q->queue_lock);
+			lockdep_assert_held(q->queue_lock);
 			rcu_assign_pointer(blkcg->blkg_hint, blkg);
 		}
 		return blkg;
@@ -171,7 +171,7 @@ static struct blkcg_gq *blkg_create(struct blkcg *blkcg,
 	int i, ret;
 
 	WARN_ON_ONCE(!rcu_read_lock_held());
-	lockdep_assert_held(&q->queue_lock);
+	lockdep_assert_held(q->queue_lock);
 
 	/* blkg holds a reference to blkcg */
 	if (!css_tryget_online(&blkcg->css)) {
@@ -269,7 +269,7 @@ struct blkcg_gq *blkg_lookup_create(struct blkcg *blkcg,
 	struct blkcg_gq *blkg;
 
 	WARN_ON_ONCE(!rcu_read_lock_held());
-	lockdep_assert_held(&q->queue_lock);
+	lockdep_assert_held(q->queue_lock);
 
 	blkg = __blkg_lookup(blkcg, q, true);
 	if (blkg)
@@ -300,7 +300,7 @@ static void blkg_destroy(struct blkcg_gq *blkg)
 	struct blkcg_gq *parent = blkg->parent;
 	int i;
 
-	lockdep_assert_held(&blkg->q->queue_lock);
+	lockdep_assert_held(blkg->q->queue_lock);
 	lockdep_assert_held(&blkcg->lock);
 
 	/* Something wrong if we are trying to remove same group twice */
@@ -350,7 +350,7 @@ static void blkg_destroy_all(struct request_queue *q)
 {
 	struct blkcg_gq *blkg, *n;
 
-	spin_lock_irq(&q->queue_lock);
+	spin_lock_irq(q->queue_lock);
 	list_for_each_entry_safe(blkg, n, &q->blkg_list, q_node) {
 		struct blkcg *blkcg = blkg->blkcg;
 
@@ -360,7 +360,7 @@ static void blkg_destroy_all(struct request_queue *q)
 	}
 
 	q->root_blkg = NULL;
-	spin_unlock_irq(&q->queue_lock);
+	spin_unlock_irq(q->queue_lock);
 }
 
 /*
@@ -455,10 +455,10 @@ void blkcg_print_blkgs(struct seq_file *sf, struct blkcg *blkcg,
 
 	rcu_read_lock();
 	hlist_for_each_entry_rcu(blkg, &blkcg->blkg_list, blkcg_node) {
-		spin_lock_irq(&blkg->q->queue_lock);
+		spin_lock_irq(blkg->q->queue_lock);
 		if (blkcg_policy_enabled(blkg->q, pol))
 			total += prfill(sf, blkg->pd[pol->plid], data);
-		spin_unlock_irq(&blkg->q->queue_lock);
+		spin_unlock_irq(blkg->q->queue_lock);
 	}
 	rcu_read_unlock();
 
@@ -656,7 +656,7 @@ u64 blkg_stat_recursive_sum(struct blkcg_gq *blkg,
 	struct cgroup_subsys_state *pos_css;
 	u64 sum = 0;
 
-	lockdep_assert_held(&blkg->q->queue_lock);
+	lockdep_assert_held(blkg->q->queue_lock);
 
 	rcu_read_lock();
 	blkg_for_each_descendant_pre(pos_blkg, pos_css, blkg) {
@@ -699,7 +699,7 @@ struct blkg_rwstat blkg_rwstat_recursive_sum(struct blkcg_gq *blkg,
 	struct blkg_rwstat sum = { };
 	int i;
 
-	lockdep_assert_held(&blkg->q->queue_lock);
+	lockdep_assert_held(blkg->q->queue_lock);
 
 	rcu_read_lock();
 	blkg_for_each_descendant_pre(pos_blkg, pos_css, blkg) {
@@ -730,7 +730,7 @@ static struct blkcg_gq *blkg_lookup_check(struct blkcg *blkcg,
 					  struct request_queue *q)
 {
 	WARN_ON_ONCE(!rcu_read_lock_held());
-	lockdep_assert_held(&q->queue_lock);
+	lockdep_assert_held(q->queue_lock);
 
 	if (!blkcg_policy_enabled(q, pol))
 		return ERR_PTR(-EOPNOTSUPP);
@@ -751,7 +751,7 @@ static struct blkcg_gq *blkg_lookup_check(struct blkcg *blkcg,
  */
 int blkg_conf_prep(struct blkcg *blkcg, const struct blkcg_policy *pol,
 		   char *input, struct blkg_conf_ctx *ctx)
-	__acquires(rcu) __acquires(&disk->queue->queue_lock)
+	__acquires(rcu) __acquires(disk->queue->queue_lock)
 {
 	struct gendisk *disk;
 	struct request_queue *q;
@@ -779,7 +779,7 @@ int blkg_conf_prep(struct blkcg *blkcg, const struct blkcg_policy *pol,
 	q = disk->queue;
 
 	rcu_read_lock();
-	spin_lock_irq(&q->queue_lock);
+	spin_lock_irq(q->queue_lock);
 
 	blkg = blkg_lookup_check(blkcg, pol, q);
 	if (IS_ERR(blkg)) {
@@ -806,7 +806,7 @@ int blkg_conf_prep(struct blkcg *blkcg, const struct blkcg_policy *pol,
 		}
 
 		/* Drop locks to do new blkg allocation with GFP_KERNEL. */
-		spin_unlock_irq(&q->queue_lock);
+		spin_unlock_irq(q->queue_lock);
 		rcu_read_unlock();
 
 		new_blkg = blkg_alloc(pos, q, GFP_KERNEL);
@@ -822,7 +822,7 @@ int blkg_conf_prep(struct blkcg *blkcg, const struct blkcg_policy *pol,
 		}
 
 		rcu_read_lock();
-		spin_lock_irq(&q->queue_lock);
+		spin_lock_irq(q->queue_lock);
 
 		blkg = blkg_lookup_check(pos, pol, q);
 		if (IS_ERR(blkg)) {
@@ -855,7 +855,7 @@ success:
 fail_preloaded:
 	radix_tree_preload_end();
 fail_unlock:
-	spin_unlock_irq(&q->queue_lock);
+	spin_unlock_irq(q->queue_lock);
 	rcu_read_unlock();
 fail:
 	put_disk_and_module(disk);
@@ -880,9 +880,9 @@ fail:
  * with blkg_conf_prep().
  */
 void blkg_conf_finish(struct blkg_conf_ctx *ctx)
-	__releases(&ctx->disk->queue->queue_lock) __releases(rcu)
+	__releases(ctx->disk->queue->queue_lock) __releases(rcu)
 {
-	spin_unlock_irq(&ctx->disk->queue->queue_lock);
+	spin_unlock_irq(ctx->disk->queue->queue_lock);
 	rcu_read_unlock();
 	put_disk_and_module(ctx->disk);
 }
@@ -1057,9 +1057,9 @@ void blkcg_destroy_blkgs(struct blkcg *blkcg)
 						struct blkcg_gq, blkcg_node);
 		struct request_queue *q = blkg->q;
 
-		if (spin_trylock(&q->queue_lock)) {
+		if (spin_trylock(q->queue_lock)) {
 			blkg_destroy(blkg);
-			spin_unlock(&q->queue_lock);
+			spin_unlock(q->queue_lock);
 		} else {
 			spin_unlock_irq(&blkcg->lock);
 			cpu_relax();
@@ -1180,12 +1180,12 @@ int blkcg_init_queue(struct request_queue *q)
 
 	/* Make sure the root blkg exists. */
 	rcu_read_lock();
-	spin_lock_irq(&q->queue_lock);
+	spin_lock_irq(q->queue_lock);
 	blkg = blkg_create(&blkcg_root, q, new_blkg);
 	if (IS_ERR(blkg))
 		goto err_unlock;
 	q->root_blkg = blkg;
-	spin_unlock_irq(&q->queue_lock);
+	spin_unlock_irq(q->queue_lock);
 	rcu_read_unlock();
 
 	if (preloaded)
@@ -1204,7 +1204,7 @@ err_destroy_all:
 	blkg_destroy_all(q);
 	return ret;
 err_unlock:
-	spin_unlock_irq(&q->queue_lock);
+	spin_unlock_irq(q->queue_lock);
 	rcu_read_unlock();
 	if (preloaded)
 		radix_tree_preload_end();
@@ -1219,7 +1219,7 @@ err_unlock:
  */
 void blkcg_drain_queue(struct request_queue *q)
 {
-	lockdep_assert_held(&q->queue_lock);
+	lockdep_assert_held(q->queue_lock);
 
 	/*
 	 * @q could be exiting and already have destroyed all blkgs as
@@ -1354,7 +1354,7 @@ pd_prealloc:
 		}
 	}
 
-	spin_lock_irq(&q->queue_lock);
+	spin_lock_irq(q->queue_lock);
 
 	list_for_each_entry(blkg, &q->blkg_list, q_node) {
 		struct blkg_policy_data *pd;
@@ -1366,7 +1366,7 @@ pd_prealloc:
 		if (!pd)
 			swap(pd, pd_prealloc);
 		if (!pd) {
-			spin_unlock_irq(&q->queue_lock);
+			spin_unlock_irq(q->queue_lock);
 			goto pd_prealloc;
 		}
 
@@ -1380,7 +1380,7 @@ pd_prealloc:
 	__set_bit(pol->plid, q->blkcg_pols);
 	ret = 0;
 
-	spin_unlock_irq(&q->queue_lock);
+	spin_unlock_irq(q->queue_lock);
 out_bypass_end:
 	if (q->mq_ops)
 		blk_mq_unfreeze_queue(q);
@@ -1409,7 +1409,7 @@ void blkcg_deactivate_policy(struct request_queue *q,
 	if (q->mq_ops)
 		blk_mq_freeze_queue(q);
 
-	spin_lock_irq(&q->queue_lock);
+	spin_lock_irq(q->queue_lock);
 
 	__clear_bit(pol->plid, q->blkcg_pols);
 
@@ -1422,7 +1422,7 @@ void blkcg_deactivate_policy(struct request_queue *q,
 		}
 	}
 
-	spin_unlock_irq(&q->queue_lock);
+	spin_unlock_irq(q->queue_lock);
 
 	if (q->mq_ops)
 		blk_mq_unfreeze_queue(q);
