@@ -631,15 +631,15 @@ static int ssg_request_merge(struct request_queue *q, struct request **rq,
 	return ELEVATOR_NO_MERGE;
 }
 
-static bool ssg_bio_merge(struct request_queue *q, struct bio *bio,
-		unsigned int nr_segs)
+static bool ssg_bio_merge(struct blk_mq_hw_ctx *hctx,struct bio *bio)
 {
+	struct request_queue *q = hctx->queue;
 	struct ssg_data *ssg = q->elevator->elevator_data;
 	struct request *free = NULL;
 	bool ret;
 
 	spin_lock(&ssg->lock);
-	ret = blk_mq_sched_try_merge(q, bio, nr_segs, &free);
+	ret = blk_mq_sched_try_merge(q, bio, &free);
 	spin_unlock(&ssg->lock);
 
 	if (free)
@@ -996,7 +996,6 @@ static struct elevator_type ssg_iosched = {
 	.elevator_attrs = ssg_attrs,
 	.elevator_name = "ssg",
 	.elevator_alias = "ssg",
-	.elevator_features = ELEVATOR_F_ZBD_SEQ_WRITE,
 	.elevator_owner = THIS_MODULE,
 };
 MODULE_ALIAS("ssg");
