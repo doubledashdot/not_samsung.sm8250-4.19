@@ -14,7 +14,6 @@
  */
 
 #include <linux/atomic.h>
-#include <linux/cpufreq_times.h>
 #include <linux/err.h>
 #include <linux/hashtable.h>
 #include <linux/init.h>
@@ -490,8 +489,7 @@ static ssize_t uid_remove_write(struct file *file,
 	struct hlist_node *tmp;
 	char uids[128];
 	char *start_uid, *end_uid = NULL;
-	uid_t uid_start = 0, uid_end = 0;
-	u64 uid;
+	long int uid_start = 0, uid_end = 0;
 
 	if (count >= sizeof(uids))
 		count = sizeof(uids) - 1;
@@ -506,20 +504,17 @@ static ssize_t uid_remove_write(struct file *file,
 	if (!start_uid || !end_uid)
 		return -EINVAL;
 
-	if (kstrtouint(start_uid, 10, &uid_start) != 0 ||
-		kstrtouint(end_uid, 10, &uid_end) != 0) {
+	if (kstrtol(start_uid, 10, &uid_start) != 0 ||
+		kstrtol(end_uid, 10, &uid_end) != 0) {
 		return -EINVAL;
 	}
 
-	/* Also remove uids from /proc/uid_time_in_state */
-	cpufreq_task_times_remove_uids(uid_start, uid_end);
-
 	rt_mutex_lock(&uid_lock);
 
-	for (uid = uid_start; uid <= uid_end; uid++) {
+	for (; uid_start <= uid_end; uid_start++) {
 		hash_for_each_possible_safe(hash_table, uid_entry, tmp,
-							hash, uid) {
-			if (uid == uid_entry->uid) {
+							hash, (uid_t)uid_start) {
+			if (uid_start == uid_entry->uid) {
 				remove_uid_tasks(uid_entry);
 				hash_del(&uid_entry->hash);
 				kfree(uid_entry);
