@@ -339,13 +339,6 @@ CONFIG_LFR_SUBNET_DETECTION := y
 # Flag to enable MCC to SCC switch feature
 CONFIG_MCC_TO_SCC_SWITCH := y
 
-ifeq ($(CONFIG_SLUB_DEBUG), y)
-	# Enable Obj Mgr Degug services if slub build
-	CONFIG_WLAN_OBJMGR_DEBUG:= y
-	CONFIG_MPC_UT_FRAMEWORK := y
-	CONFIG_LOCK_STATS_ON:= y
-endif
-
 ifeq (y,$(findstring y,$(CONFIG_QCA_WIFI_SDIO) $(CONFIG_HIF_USB)))
 CONFIG_HL_DP_SUPPORT := y
 else
@@ -489,19 +482,6 @@ ifneq ($(TARGET_BUILD_VARIANT),user)
 		CONFIG_FEATURE_PKTLOG := y
 	endif
 	CONFIG_WLAN_DEBUG_CRASH_INJECT := y
-endif
-
-#Enable WLAN/Power debugfs feature only if debug_fs is enabled
-ifeq ($(CONFIG_DEBUG_FS), y)
-       # Flag to enable debugfs. Depends on CONFIG_DEBUG_FS in kernel
-       # configuration.
-       CONFIG_WLAN_DEBUGFS := y
-
-       # Flag to enable streamfs. Depends on CONFIG_DEBUG_FS and
-       # CONFIG_RELAY in kernel configuration.
-ifeq ($(CONFIG_RELAY), y)
-       CONFIG_WLAN_STREAMFS := y
-endif
 endif
 
 ifeq ($(CONFIG_WLAN_DEBUGFS), y)
@@ -787,7 +767,7 @@ CONFIG_WLAN_LOGGING_BUFFERS_DYNAMICALLY := n
 CONFIG_WLAN_DFS_STATIC_MEM_ALLOC := y
 
 #Flag to enable HTC credit history feature
-CONFIG_FEATURE_HTC_CREDIT_HISTORY := y
+CONFIG_FEATURE_HTC_CREDIT_HISTORY := n
 
 #Flag to enable MTRACE feature
 CONFIG_TRACE_RECORD_FEATURE := n
@@ -963,9 +943,6 @@ CONFIG_CHANNEL_HOPPING_ALL_BANDS := y
 endif
 
 ifeq ($(CONFIG_ARCH_SDXPRAIRIE), y)
-	ifneq ($(CONFIG_SLUB_DEBUG), y)
-		CONFIG_DP_TRACE := n
-	endif
 
 	CONFIG_DIRECT_BUF_RX_ENABLE := n
 	CONFIG_WMI_DBR_SUPPORT := n
