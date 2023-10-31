@@ -344,8 +344,10 @@ void *msm_cvp_open(int core_id, int session_type)
 		goto fail_init;
 	}
 
+#ifdef CONFIG_DEBUG_FS
 	inst->debugfs_root =
 		msm_cvp_debugfs_init_inst(inst, core->debugfs_root);
+#endif
 
 	strscpy(inst->proc_name, current->comm, 100);
 	return inst;
@@ -436,7 +438,10 @@ int msm_cvp_destroy(struct msm_cvp_inst *inst)
 	mutex_destroy(&inst->lock);
 	mutex_destroy(&inst->fence_lock);
 
+#ifdef CONFIG_DEBUG_FS
 	msm_cvp_debugfs_deinit_inst(inst);
+#endif
+
 	_deinit_session_queue(inst);
 
 	pr_info(CVP_DBG_TAG "Closed cvp instance: %pK session_id = %d\n",
