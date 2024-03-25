@@ -564,58 +564,61 @@ static ssize_t bg_iostat_show(struct kobject *kobj, struct kobj_attribute *attr,
 	u64 daily_fsync = 0;
 	unsigned int nr_apps = 0, nr_apps_bg = 0, nr_apps_thr = 0;
 
-	rt_mutex_lock(&uid_lock);
+	update_io_stats_all();
 
-	update_io_stats_all_locked();
-	
-	hash_for_each(hash_table, bkt, uid_entry, hash) {
-		nr_apps++;
+	for (bkt = 0, uid_entry = NULL; uid_entry == NULL &&
+		bkt < HASH_SIZE(hash_table); bkt++) {
+		lock_uid_by_bkt(bkt);
+		hash_for_each(hash_table, bkt, uid_entry, hash) {
+			nr_apps++;
 
-		daily_fg_writes = UID_ENTRY_DAILY_FG_WRITE(uid_entry);
-		daily_bg_writes = UID_ENTRY_DAILY_BG_WRITE(uid_entry);
-		daily_fsync = UID_ENTRY_DAILY_FG_FSYNC(uid_entry) + \
-			      UID_ENTRY_DAILY_BG_FSYNC(uid_entry);
+			daily_fg_writes = UID_ENTRY_DAILY_FG_WRITE(uid_entry);
+			daily_bg_writes = UID_ENTRY_DAILY_BG_WRITE(uid_entry);
+			daily_fsync = UID_ENTRY_DAILY_FG_FSYNC(uid_entry) + \
+				      UID_ENTRY_DAILY_BG_FSYNC(uid_entry);
 
-		if (ATTR_VALUE(auto_reset_daily_stat))
-			update_daily_writes(uid_entry);
+			if (ATTR_VALUE(auto_reset_daily_stat))
+				update_daily_writes(uid_entry);
 
-		total_fg_bytes += daily_fg_writes;
-		total_bg_bytes += daily_bg_writes;
-		daily_writes = daily_fg_writes + daily_bg_writes;
+			total_fg_bytes += daily_fg_writes;
+			total_bg_bytes += daily_bg_writes;
+			daily_writes = daily_fg_writes + daily_bg_writes;
 
-		if (uid_entry->is_whitelist || daily_writes == 0)
-			continue;
-		
-		if (daily_bg_writes)
-			nr_apps_bg++;
+			if (uid_entry->is_whitelist || daily_writes == 0)
+				continue;
 
-		if (BtoM(daily_writes) > ATTR_VALUE(write_threshold))
-			nr_apps_thr++;
+			if (daily_bg_writes)
+				nr_apps_bg++;
 
-		if (daily_writes > smallest_bg_io) {
-			list_for_each_entry(cur_entry, &top_n_head, top_n_list) {
-				if (cur_entry->daily_writes > daily_writes)
-					break;
-			}
+			if (BtoM(daily_writes) > ATTR_VALUE(write_threshold))
+				nr_apps_thr++;
 
-			__list_add(&uid_entry->top_n_list,
-					cur_entry->top_n_list.prev,
-					&cur_entry->top_n_list);
+			if (daily_writes > smallest_bg_io) {
+				list_for_each_entry(cur_entry, &top_n_head, top_n_list) {
+					if (cur_entry->daily_writes > daily_writes)
+						break;
+				}
 
-			uid_entry->daily_writes = daily_writes;
-			uid_entry->daily_fsync = daily_fsync;
-			
-			if (nr_entries >= NR_TOP_BG_ENTRIES) {
-				cur_entry = list_first_entry(&top_n_head, struct uid_entry, top_n_list);
-				list_del(&cur_entry->top_n_list);
+				__list_add(&uid_entry->top_n_list,
+						cur_entry->top_n_list.prev,
+						&cur_entry->top_n_list);
 
-				cur_entry = list_first_entry(&top_n_head, struct uid_entry, top_n_list);
-				smallest_bg_io = cur_entry->daily_writes;
-			} else {
-				nr_entries++;
+				uid_entry->daily_writes = daily_writes;
+				uid_entry->daily_fsync = daily_fsync;
+
+				if (nr_entries >= NR_TOP_BG_ENTRIES) {
+					cur_entry = list_first_entry(&top_n_head, struct uid_entry, top_n_list);
+					list_del(&cur_entry->top_n_list);
+
+					cur_entry = list_first_entry(&top_n_head, struct uid_entry, top_n_list);
+					smallest_bg_io = cur_entry->daily_writes;
+				} else {
+					nr_entries++;
+				}
 			}
 		}
-	}
+		unlock_uid_by_bkt(bkt);
+}
 
 	len += snprintf(buf, PAGE_SIZE,
 		"\"bg_stat_ver\":\"%d\",\"total_io_MB\":\"%llu\",\"bg_io_MB\":\"%llu\","
@@ -649,7 +652,6 @@ static ssize_t bg_iostat_show(struct kobject *kobj, struct kobj_attribute *attr,
 
 	len += snprintf(buf+len, PAGE_SIZE, "\n");
 
-	rt_mutex_unlock(&uid_lock);
 	return len;
 }
 BG_IOSTAT_RO_ATTR(sec_stat, bg_iostat_show);
