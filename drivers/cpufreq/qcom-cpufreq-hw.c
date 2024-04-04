@@ -173,7 +173,6 @@ static unsigned long limits_mitigation_notify(struct cpufreq_qcom *c,
 			freq = policy->cpuinfo.max_freq;
 	}
 
-
 	sched_update_cpu_freq_min_max(&c->related_cpus, 0, freq);
 	snprintf(lmh_debug, 8, "lmh_%d", cpumask_first(&c->related_cpus));
 	trace_clock_set_rate(lmh_debug, freq, raw_smp_processor_id());
