@@ -387,6 +387,8 @@ struct dl_bw {
 	u64			total_bw;
 };
 
+unsigned long approximate_util_avg(unsigned long util, u64 delta);
+
 static inline void __dl_update(struct dl_bw *dl_b, s64 bw);
 
 static inline
