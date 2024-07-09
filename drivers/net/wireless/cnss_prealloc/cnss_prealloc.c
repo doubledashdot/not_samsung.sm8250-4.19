@@ -22,7 +22,9 @@ static DEFINE_SPINLOCK(alloc_lock);
 #define PRE_ALLOC_DEBUGFS_DIR		"cnss-prealloc"
 #define PRE_ALLOC_DEBUGFS_FILE_OBJ	"status"
 
+#ifdef CONFIG_DEBUG_FS
 static struct dentry *debug_base;
+#endif
 
 struct wcnss_prealloc {
 	int occupied;
@@ -282,6 +284,7 @@ static int __init wcnss_pre_alloc_init(void)
 		return ret;
 	}
 
+#ifdef CONFIG_DEBUG_FS
 	debug_base = debugfs_create_dir(PRE_ALLOC_DEBUGFS_DIR, NULL);
 	if (IS_ERR_OR_NULL(debug_base)) {
 		pr_debug("%s: Failed to create debugfs dir\n", __func__);
@@ -292,6 +295,7 @@ static int __init wcnss_pre_alloc_init(void)
 		pr_debug("%s: Failed to create debugfs file\n", __func__);
 		debugfs_remove_recursive(debug_base);
 	}
+#endif
 
 	return ret;
 }
@@ -299,7 +303,9 @@ static int __init wcnss_pre_alloc_init(void)
 static void __exit wcnss_pre_alloc_exit(void)
 {
 	wcnss_prealloc_deinit();
+#ifdef CONFIG_DEBUG_FS
 	debugfs_remove_recursive(debug_base);
+#endif
 }
 
 module_init(wcnss_pre_alloc_init);

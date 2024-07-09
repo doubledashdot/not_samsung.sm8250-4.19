@@ -2571,10 +2571,12 @@ static int spcom_probe(struct platform_device *pdev)
 		goto fail_reg_chardev;
 	}
 
+#ifdef CONFIG_IPC_LOGGING
 	spcom_ipc_log_context = ipc_log_context_create(SPCOM_LOG_PAGE_CNT,
 						       "spcom", 0);
 	if (!spcom_ipc_log_context)
 		pr_err("Unable to create IPC log context\n");
+#endif
 
 	spcom_pr_dbg("Driver Initialization ok\n");
 	return 0;

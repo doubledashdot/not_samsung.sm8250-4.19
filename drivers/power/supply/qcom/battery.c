@@ -5,7 +5,9 @@
 
 #define pr_fmt(fmt) "QCOM-BATT: %s: " fmt, __func__
 
+#ifdef CONFIG_DEBUG_FS
 #include <linux/debugfs.h>
+#endif
 #include <linux/device.h>
 #include <linux/delay.h>
 #include <linux/module.h>
