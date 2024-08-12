@@ -725,6 +725,22 @@ ifdef CONFIG_CC_WERROR
 KBUILD_CFLAGS  += -Werror
 endif
 
+ifdef CONFIG_LLVM_POLLY
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-ast-use-context)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-invariant-load-hoisting)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-isl-arg=--no-schedule-serialize-sccs)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-loopfusion-greedy=1)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-num-threads=0)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-omp-backend=LLVM)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-postopts=1)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-reschedule=1)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-run-inliner)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-scheduling-chunksize=1)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-scheduling=dynamic)
+KBUILD_CFLAGS += $(call cc-option,-mllvm -polly-vectorizer=stripmine)
+endif
+
 # Tell gcc to never replace conditional load with a non-conditional one
 KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
 KBUILD_CFLAGS	+= $(call cc-option,-fno-allow-store-data-races)
