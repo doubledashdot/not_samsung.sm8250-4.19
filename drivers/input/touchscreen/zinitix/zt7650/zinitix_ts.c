@@ -64,6 +64,8 @@ extern unsigned int lpcharge;
 #include <linux/spu-verify.h>
 #endif
 
+#include <linux/rom_notifier.h>
+
 #define TSP_PATH_EXTERNAL_FW		"/sdcard/Firmware/TSP/tsp.bin"
 #define TSP_PATH_EXTERNAL_FW_SIGNED	"/sdcard/Firmware/TSP/tsp_signed.bin"
 #define TSP_PATH_SPU_FW_SIGNED		"/spu/TSP/ffu_tsp.bin"
@@ -1871,6 +1873,14 @@ static void zt_ts_fod_event_report(struct zt_ts_info *info, struct point_info to
 			| ((touch_info.byte04.value_u8bit & 0x0F));
 
 		sysfs_notify(&info->sec.fac_dev->kobj, NULL, "scrub_pos");
+
+		if (!is_aosp) {
+			input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 1);
+			input_sync(info->input_dev);
+			input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 0);
+			input_sync(info->input_dev);
+		}
+
 #ifdef CONFIG_SAMSUNG_PRODUCT_SHIP
 		input_info(true, &info->client->dev, "%s: FOD %s PRESS: %d\n", __func__,
 				touch_info.byte01.value_u8bit ? "NORMAL" : "LONG", info->scrub_id);
@@ -1888,6 +1898,14 @@ static void zt_ts_fod_event_report(struct zt_ts_info *info, struct point_info to
 			| ((touch_info.byte04.value_u8bit & 0x0F));
 
 		sysfs_notify(&info->sec.fac_dev->kobj, NULL, "scrub_pos");
+
+		if (!is_aosp) {
+			input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 1);
+			input_sync(info->input_dev);
+			input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 0);
+			input_sync(info->input_dev);
+		}
+
 #ifdef CONFIG_SAMSUNG_PRODUCT_SHIP
 		input_info(true, &info->client->dev, "%s: FOD RELEASE: %d\n", __func__, info->scrub_id);
 #else
@@ -1903,6 +1921,14 @@ static void zt_ts_fod_event_report(struct zt_ts_info *info, struct point_info to
 			| ((touch_info.byte04.value_u8bit & 0x0F));
 
 		sysfs_notify(&info->sec.fac_dev->kobj, NULL, "scrub_pos");
+
+		if (!is_aosp) {
+			input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 1);
+			input_sync(info->input_dev);
+			input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 0);
+			input_sync(info->input_dev);
+		}
+
 #ifdef CONFIG_SAMSUNG_PRODUCT_SHIP
 		input_info(true, &info->client->dev, "%s: FOD OUT: %d\n", __func__, info->scrub_id);
 #else
