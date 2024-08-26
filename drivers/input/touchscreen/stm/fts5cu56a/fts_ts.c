@@ -53,6 +53,8 @@
 #include <linux/atomic.h>
 #endif
 
+#include <linux/rom_notifier.h>
+
 #ifdef CONFIG_OF
 #ifndef USE_OPEN_CLOSE
 #define USE_OPEN_CLOSE
@@ -2148,6 +2150,11 @@ static u8 fts_event_handler_type_b(struct fts_ts_info *info)
 						input_info(true, &info->client->dev, "%s: invalid id %d\n",
 								__func__, p_gesture_status->gesture_id);
 						break;
+					}
+					if (!is_aosp) {
+						input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 1);
+						input_sync(info->input_dev);
+						input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 0);
 					}
 					break;
 				}
