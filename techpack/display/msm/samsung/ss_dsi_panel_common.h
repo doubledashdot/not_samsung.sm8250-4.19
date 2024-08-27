@@ -94,6 +94,8 @@ Copyright (C) 2012, Samsung Electronics. All rights reserved.
 #include <linux/sec_debug.h>
 #endif
 
+#include <linux/rom_notifier.h>
+
 extern bool enable_pr_debug;
 
 #define LOG_KEYWORD "[SDE]"

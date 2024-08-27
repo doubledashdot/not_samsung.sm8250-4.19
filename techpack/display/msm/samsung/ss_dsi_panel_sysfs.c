@@ -4435,25 +4435,30 @@ static ssize_t ss_finger_hbm_store(struct device *dev,
 
 	sscanf(buf, "%d", &value);
 
-	// brightness value > 0 means enabled
-	if (vdd->finger_mask == 0) {
-		if (value > 0) {
-			LCD_INFO("mask_bl_level value : %d\n", value);
-			vdd->br_info.common_br.finger_mask_bl_level = value;
-			vdd->finger_mask = 1;
-			vdd->finger_mask_updated = true;
-		} else {
-			LCD_ERR("mask already disabled");
+	if (is_aosp) {
+		// brightness value > 0 means enabled
+		if (vdd->finger_mask == 0) {
+			if (value > 0) {
+				LCD_INFO("mask_bl_level value : %d\n", value);
+				vdd->br_info.common_br.finger_mask_bl_level = value;
+				vdd->finger_mask = 1;
+				vdd->finger_mask_updated = true;
+			} else {
+				LCD_ERR("mask already disabled");
+			}
+		} else if (vdd->finger_mask) {
+			if (value <= 0) {
+				LCD_INFO("mask_bl_level value : %d\n", value);
+				vdd->br_info.common_br.finger_mask_bl_level = value;
+				vdd->finger_mask = 0;
+				vdd->finger_mask_updated = true;
+			} else {
+				LCD_ERR("mask already enabled");
+			}
 		}
-	} else if (vdd->finger_mask) {
-		if (value <= 0) {
-			LCD_INFO("mask_bl_level value : %d\n", value);
-			vdd->br_info.common_br.finger_mask_bl_level = value;
-			vdd->finger_mask = 0;
-			vdd->finger_mask_updated = true;
-		} else {
-			LCD_ERR("mask already enabled");
-		}
+	} else {
+		LCD_INFO("mask_bl_level value : %d\n", value);
+		vdd->br_info.common_br.finger_mask_bl_level = value;
 	}
 
 	return size;
