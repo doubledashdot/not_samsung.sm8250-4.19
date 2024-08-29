@@ -1264,6 +1264,7 @@ static bool __purge_vmap_area_lazy(unsigned long start, unsigned long end)
 {
 	unsigned long resched_threshold;
 	struct llist_node *valist;
+	unsigned long nr_purged_pages = 0;
 	struct vmap_area *va;
 	struct vmap_area *n_va;
 	unsigned long flush_all_threshold = VMALLOC_END - VMALLOC_START;
@@ -1296,12 +1297,16 @@ static bool __purge_vmap_area_lazy(unsigned long start, unsigned long end)
 		unsigned long nr = (va->va_end - va->va_start) >> PAGE_SHIFT;
 
 		__free_vmap_area(va);
-		atomic_long_sub(nr, &vmap_lazy_nr);
+
+		nr_purged_pages += nr;
 
 		if (atomic_long_read(&vmap_lazy_nr) < resched_threshold)
 			cond_resched_lock(&vmap_area_lock);
 	}
-	spin_unlock(&vmap_area_lock);
+
+	atomic_long_sub(nr_purged_pages, &vmap_lazy_nr);
+
+        spin_unlock(&vmap_area_lock);
 	return true;
 }
 
