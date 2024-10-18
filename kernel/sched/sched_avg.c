@@ -230,3 +230,4 @@ u64 sched_lpm_disallowed_time(int cpu)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(sched_lpm_disallowed_time);

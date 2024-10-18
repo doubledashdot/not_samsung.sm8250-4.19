@@ -5,7 +5,6 @@
 #if !defined(_TRACE_SCHED_H) || defined(TRACE_HEADER_MULTI_READ)
 #define _TRACE_SCHED_H
 
-#include <linux/kthread.h>
 #include <linux/sched/numa_balancing.h>
 #include <linux/tracepoint.h>
 #include <linux/binfmts.h>
@@ -51,89 +50,6 @@ TRACE_EVENT(sched_kthread_stop_ret,
 	),
 
 	TP_printk("ret=%d", __entry->ret)
-);
-
-/**
- * sched_kthread_work_queue_work - called when a work gets queued
- * @worker:	pointer to the kthread_worker
- * @work:	pointer to struct kthread_work
- *
- * This event occurs when a work is queued immediately or once a
- * delayed work is actually queued (ie: once the delay has been
- * reached).
- */
-TRACE_EVENT(sched_kthread_work_queue_work,
-
-	TP_PROTO(struct kthread_worker *worker,
-		 struct kthread_work *work),
-
-	TP_ARGS(worker, work),
-
-	TP_STRUCT__entry(
-		__field( void *,	work	)
-		__field( void *,	function)
-		__field( void *,	worker)
-	),
-
-	TP_fast_assign(
-		__entry->work		= work;
-		__entry->function	= work->func;
-		__entry->worker		= worker;
-	),
-
-	TP_printk("work struct=%p function=%ps worker=%p",
-		  __entry->work, __entry->function, __entry->worker)
-);
-
-/**
- * sched_kthread_work_execute_start - called immediately before the work callback
- * @work:	pointer to struct kthread_work
- *
- * Allows to track kthread work execution.
- */
-TRACE_EVENT(sched_kthread_work_execute_start,
-
-	TP_PROTO(struct kthread_work *work),
-
-	TP_ARGS(work),
-
-	TP_STRUCT__entry(
-		__field( void *,	work	)
-		__field( void *,	function)
-	),
-
-	TP_fast_assign(
-		__entry->work		= work;
-		__entry->function	= work->func;
-	),
-
-	TP_printk("work struct %p: function %ps", __entry->work, __entry->function)
-);
-
-/**
- * sched_kthread_work_execute_end - called immediately after the work callback
- * @work:	pointer to struct work_struct
- * @function:   pointer to worker function
- *
- * Allows to track workqueue execution.
- */
-TRACE_EVENT(sched_kthread_work_execute_end,
-
-	TP_PROTO(struct kthread_work *work, kthread_work_func_t function),
-
-	TP_ARGS(work, function),
-
-	TP_STRUCT__entry(
-		__field( void *,	work	)
-		__field( void *,	function)
-	),
-
-	TP_fast_assign(
-		__entry->work		= work;
-		__entry->function	= function;
-	),
-
-	TP_printk("work struct %p: function %ps", __entry->work, __entry->function)
 );
 
 /*
@@ -1680,6 +1596,28 @@ TRACE_EVENT_CONDITION(sched_overutilized,
 
 	TP_printk("overutilized=%d sd_span=%s",
 		__entry->overutilized ? 1 : 0, __entry->cpulist)
+);
+
+TRACE_EVENT(sched_capacity_update,
+
+	TP_PROTO(int cpu),
+
+	TP_ARGS(cpu),
+
+	TP_STRUCT__entry(
+		__field(unsigned int, cpu)
+		__field(unsigned int, capacity)
+		__field(unsigned int, capacity_orig)
+	),
+
+	TP_fast_assign(
+		__entry->cpu			= cpu;
+		__entry->capacity		= capacity_of(cpu);
+		__entry->capacity_orig		= capacity_orig_of(cpu);
+	),
+
+	TP_printk("cpu=%d capacity=%u capacity_orig=%u",
+		__entry->cpu, __entry->capacity, __entry->capacity_orig)
 );
 
 /*
