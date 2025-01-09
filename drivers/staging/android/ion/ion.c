@@ -1222,16 +1222,6 @@ static const struct file_operations ion_fops = {
 	.compat_ioctl	= compat_ptr_ioctl,
 };
 
-static int ion_oom_notify(struct notifier_block *nb,
-			  unsigned long action, void *data)
-{
-	return NOTIFY_DONE;
-}
-
-static struct notifier_block ion_oom_notifier = {
-	.notifier_call = ion_oom_notify,
-};
-
 static int ion_debug_heap_show(struct seq_file *s, void *unused)
 {
 	struct ion_heap *heap = s->private;
