@@ -3593,7 +3593,9 @@ static irqreturn_t zt_touch_work(int irq, void *data)
 			if (read_data(info->client, ZT_PROXIMITY_DETECT, (u8 *)&prox_data, 2) < 0)
 				input_err(true, &client->dev, "%s: fail to read proximity detect reg\n", __func__);
 
-			prox_data = prox_data == 5 || !prox_data;
+			if (is_aosp)
+				prox_data = prox_data == 5 || !prox_data;
+
 			info->hover_event = prox_data;
 
 			input_info(true, &client->dev, "PROXIMITY DETECT. LVL = %d \n", prox_data);
