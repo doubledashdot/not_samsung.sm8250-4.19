@@ -302,6 +302,7 @@ int zpool_shrink(struct zpool *zpool, unsigned int pages,
 	       zpool->driver->shrink(zpool->pool, pages, reclaimed) : -EINVAL;
 }
 
+<<<<<<< HEAD
 /**
  * zpool_map_handle() - Map a previously allocated handle into memory
  * @zpool:	The zpool that the handle was allocated from
@@ -344,6 +345,34 @@ void zpool_unmap_handle(struct zpool *zpool, unsigned long handle)
 {
 	zpool->driver->unmap(zpool->pool, handle);
 }
+=======
+ /**
+ * zpool_compact() - try to run compaction over zpool
+ * @pool       The zpool to compact
+ *
+ * Returns: the number of migrated pages
+ */
+unsigned long zpool_compact(struct zpool *zpool)
+{
+	return zpool->driver->compact ?
+		zpool->driver->compact(zpool->pool) : 0;
+}
+EXPORT_SYMBOL(zpool_compact);
+
+
+/**
+ * zpool_get_num_compacted() - get the number of migrated/compacted pages
+ *
+ * Returns: the total number of compacted pages for the pool, or 0 if the
+ * backend doesn't provide get_num_compacted() callback
+ */
+unsigned long zpool_get_num_compacted(struct zpool *zpool)
+{
+	return zpool->driver->get_num_compacted ?
+		zpool->driver->get_num_compacted(zpool->pool) : 0;
+}
+EXPORT_SYMBOL(zpool_get_num_compacted);
+>>>>>>> 01fac40d35c5 (mm: zpool: remove object mapping APIs)
 
 /**
  * zpool_obj_read_begin() - Start reading from a previously allocated handle.
