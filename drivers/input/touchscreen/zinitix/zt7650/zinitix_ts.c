@@ -1424,12 +1424,10 @@ static void zt_set_lp_mode(struct zt_ts_info *info, int event, bool enable)
 
 	mutex_lock(&info->set_lpmode_lock);
 
-	if (enable) {
+	if (enable)
 		zinitix_bit_set(info->lpm_mode, event);
-	}
-	else {
+	else
 		zinitix_bit_clr(info->lpm_mode, event);
-    }
 
 	ret = ts_write_to_sponge(info, ZT_SPONGE_LP_FEATURE, &info->lpm_mode, 1);
 	if (ret < 0)
@@ -3569,17 +3567,13 @@ static irqreturn_t zt_touch_work(int irq, void *data)
 			if (read_data(info->client, ZT_PROXIMITY_DETECT, (u8 *)&prox_data, 2) < 0)
 				input_err(true, &client->dev, "%s: fail to read proximity detect reg\n", __func__);
 
-            if (info->lpm_mode == 1 || !info->finger_cnt1) {
-			// Report actual range when the area around the sensor is touched,
-			// when panel is in LPM state or when the screen isn't touched
-			    prox_data = prox_data == 5 || !prox_data;
-			    info->hover_event = prox_data;
+			prox_data = prox_data == 5 || !prox_data;
+			info->hover_event = prox_data;
 
-			    input_info(true, &client->dev, "PROXIMITY DETECT. LVL = %d \n", prox_data);
-			    input_report_abs(info->input_dev_proximity, ABS_MT_CUSTOM, prox_data);
-			    input_sync(info->input_dev_proximity);
-			    break;
-			}
+			input_info(true, &client->dev, "PROXIMITY DETECT. LVL = %d \n", prox_data);
+			input_report_abs(info->input_dev_proximity, ABS_MT_CUSTOM, prox_data);
+			input_sync(info->input_dev_proximity);
+			break;
 		}
 	}
 
@@ -7826,11 +7820,8 @@ static void ear_detect_enable(void *device_data)
 		snprintf(buff, sizeof(buff), "%s", "NG");
 		sec->cmd_state = SEC_CMD_STATUS_FAIL;
 	} else {
-		if (info->lpm_mode == 1)
-			info->ed_enable = sec->cmd_param[0];
-		else
-			info->ed_enable = sec->cmd_param[0] != 0 ? 3 : 0;
-		
+		info->ed_enable = sec->cmd_param[0];
+
 		if (info->ed_enable == 3) {
 			zt_set_optional_mode(info, DEF_OPTIONAL_MODE_EAR_DETECT, true);
 			zt_set_optional_mode(info, DEF_OPTIONAL_MODE_EAR_DETECT_MUTUAL, false);
