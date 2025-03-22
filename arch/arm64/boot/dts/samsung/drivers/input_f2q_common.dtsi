@@ -80,6 +80,7 @@
 		stm,tclm_level = <2>;
 		stm,afe_base = <0x010E>;
 		stm,enable_settings_aot;
+		support_dex_mode;
 		stm,ss_touch_num = <1>;
 /*		sync-reportrate-120 = "Y";*/
 		support_open_short_test;
@@ -125,6 +126,7 @@
 		sec,ss_touch_num = <2>;
 		support_open_short_test;
 		support_mis_calibration_test;
+		support_dex_mode;
 		support_ear_detect_mode;
 	};
 };

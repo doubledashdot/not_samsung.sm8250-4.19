@@ -500,6 +500,7 @@
 		novatek,firmware_name = "tsp_novatek/nt36523_gts7l.bin";
 		novatek,mp-support-dt;
 		check_fw_project_id;
+		support_dex_mode;
 		enable_settings_aot;
 		enable_sysinput_enabled;
 		novatek,scanoff_when_cover_closed; /* for tablet */

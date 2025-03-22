@@ -516,6 +516,7 @@
 		stm,tclm_level = <2>;
 		stm,afe_base = <0x0010>;
 		stm,enable_settings_aot;
+		support_dex_mode;
 		stm,enable_vbus_noti;
 		stm,support_fod;
 		sync-reportrate-120 = "Y";
