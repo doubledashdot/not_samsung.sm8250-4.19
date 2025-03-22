@@ -38,11 +38,23 @@
 		pmsg-size = <0x40000>;
 	};
 
+	/* rkp_region reserves for RKP */
+	rkp_region: rkp_region@B0200000 {
+		compatible = "removed-dma-pool";
+		reg = <0x0 0xB0200000 0x0 0x200000>;
+	};
+
 	/*to reserve 2MB for TIMA */
 	tima_mem: tima_region@B0100000 {
 		compatible = "removed-dma-pool";
 		no-map;
 		reg = <0x0 0xB0100000 0 0x100000>;
+	};
+
+	hdm_region: hdm_region@9FB00000 {
+		compatible = "removed-dma-pool";
+		no-map;
+		reg = <0x0 0x9FB00000 0x0 0x1000>;
 	};
 
 	/* Kaslr offset reserve */

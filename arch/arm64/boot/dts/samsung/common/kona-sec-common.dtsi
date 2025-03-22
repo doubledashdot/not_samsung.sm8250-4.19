@@ -42,6 +42,10 @@
 		free_track,black_list-skips = <2>;
 	};
 
+	samsung,sec_hdm {
+		memory-region = <&hdm_region>;
+	};
+
 	samsung,ss_plog {
 		compatible = "samsung,ss_plog";
 		memory-region = <&ss_plog_region>;
