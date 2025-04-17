@@ -1589,7 +1589,6 @@ wmi_buf_t wmi_buf_alloc_fl(wmi_unified_t wmi_handle, uint32_t len,
 				false, func, line);
 
 	if (!wmi_buf) {
-		wmi_nofl_err("%s:%d, failed to alloc len:%d", func, line, len);
 		return NULL;
 	}
 
@@ -1694,14 +1693,6 @@ static bool wmi_is_legacy_d0wow_disable_cmd(wmi_buf_t buf, uint32_t cmd_id)
 
 static inline void wmi_unified_debug_dump(wmi_unified_t wmi_handle)
 {
-	wmi_nofl_err("Endpoint ID = %d, Tx Queue Depth = %d, soc_id = %u, target type = %s",
-		     wmi_handle->wmi_endpoint_id,
-		     htc_get_tx_queue_depth(wmi_handle->htc_handle,
-					    wmi_handle->wmi_endpoint_id),
-		     wmi_handle->soc->soc_idx,
-		     (wmi_handle->target_type ==
-		      WMI_TLV_TARGET ? "WMI_TLV_TARGET" :
-						"WMI_NON_TLV_TARGET"));
 }
 
 #ifdef SYSTEM_PM_CHECK
@@ -1758,14 +1749,10 @@ QDF_STATUS wmi_unified_cmd_send_fl(wmi_unified_t wmi_handle, wmi_buf_t buf,
 	} else if (qdf_atomic_read(&wmi_handle->is_target_suspended) &&
 		   !wmi_is_pm_resume_cmd(cmd_id) &&
 		   !wmi_is_legacy_d0wow_disable_cmd(buf, cmd_id)) {
-			wmi_nofl_err("Target is suspended (via %s:%u)",
-					func, line);
 		return QDF_STATUS_E_BUSY;
 	}
 
 	if (wmi_handle->wmi_stopinprogress) {
-		wmi_nofl_err("%s:%d, WMI stop in progress, wmi_handle:%pK",
-			     func, line, wmi_handle);
 		return QDF_STATUS_E_INVAL;
 	}
 
@@ -1776,16 +1763,12 @@ QDF_STATUS wmi_unified_cmd_send_fl(wmi_unified_t wmi_handle, wmi_buf_t buf,
 
 		if (wmi_handle->ops->wmi_check_command_params(NULL, buf_ptr, len, cmd_id)
 			!= 0) {
-			wmi_nofl_err("%s:%d, Invalid WMI Param Buffer for Cmd:%d",
-				     func, line, cmd_id);
 			return QDF_STATUS_E_INVAL;
 		}
 	}
 #endif
 
 	if (qdf_nbuf_push_head(buf, sizeof(WMI_CMD_HDR)) == NULL) {
-		wmi_nofl_err("%s:%d, Failed to send cmd %x, no memory",
-			     func, line, cmd_id);
 		return QDF_STATUS_E_NOMEM;
 	}
 
@@ -1795,12 +1778,8 @@ QDF_STATUS wmi_unified_cmd_send_fl(wmi_unified_t wmi_handle, wmi_buf_t buf,
 	qdf_atomic_inc(&wmi_handle->pending_cmds);
 	if (qdf_atomic_read(&wmi_handle->pending_cmds) >=
 			wmi_handle->wmi_max_cmds) {
-		wmi_nofl_err("hostcredits = %d",
-			     wmi_get_host_credits(wmi_handle));
 		htc_dump_counter_info(wmi_handle->htc_handle);
 		qdf_atomic_dec(&wmi_handle->pending_cmds);
-		wmi_nofl_err("%s:%d, MAX %d WMI Pending cmds reached",
-			     func, line, wmi_handle->wmi_max_cmds);
 		wmi_unified_debug_dump(wmi_handle);
 		htc_ce_tasklet_debug_dump(wmi_handle->htc_handle);
 		qdf_trigger_self_recovery(wmi_handle->soc->wmi_psoc,
@@ -1850,8 +1829,6 @@ QDF_STATUS wmi_unified_cmd_send_fl(wmi_unified_t wmi_handle, wmi_buf_t buf,
 
 	if (QDF_STATUS_SUCCESS != status) {
 		qdf_atomic_dec(&wmi_handle->pending_cmds);
-		wmi_nofl_err("%s:%d, htc_send_pkt failed, status:%d",
-			     func, line, status);
 		qdf_mem_free(pkt);
 		return status;
 	}
@@ -1975,7 +1952,6 @@ int wmi_unified_register_event_handler(wmi_unified_t wmi_handle,
 	evt_id = wmi_handle->wmi_events[event_id];
 
 	if (wmi_unified_get_event_handler_ix(wmi_handle, evt_id) != -1) {
-		wmi_info("event handler already registered 0x%x", evt_id);
 		return QDF_STATUS_E_FAILURE;
 	}
 	if (soc->max_event_idx == WMI_UNIFIED_MAX_EVENT) {
@@ -2022,8 +1998,6 @@ int wmi_unified_unregister_event(wmi_unified_t wmi_handle,
 
 	idx = wmi_unified_get_event_handler_ix(wmi_handle, evt_id);
 	if (idx == -1) {
-		wmi_warn("event handler is not registered: evt id 0x%x",
-			 evt_id);
 		return QDF_STATUS_E_FAILURE;
 	}
 	wmi_handle->event_handler[idx] = NULL;
@@ -2060,15 +2034,12 @@ int wmi_unified_unregister_event_handler(wmi_unified_t wmi_handle,
 
 	if (event_id >= wmi_events_max ||
 		wmi_handle->wmi_events[event_id] == WMI_EVENT_ID_INVALID) {
-		wmi_err("Event id %d is unavailable", event_id);
 		return QDF_STATUS_E_FAILURE;
 	}
 	evt_id = wmi_handle->wmi_events[event_id];
 
 	idx = wmi_unified_get_event_handler_ix(wmi_handle, evt_id);
 	if (idx == -1) {
-		wmi_err("event handler is not registered: evt id 0x%x",
-			 evt_id);
 		return QDF_STATUS_E_FAILURE;
 	}
 	wmi_handle->event_handler[idx] = NULL;
@@ -2166,7 +2137,6 @@ wmi_process_fw_event_sched_thread_ctx(struct wmi_unified *wmi,
 
 	params_buf = qdf_mem_malloc(sizeof(struct wmi_process_fw_event_params));
 	if (!params_buf) {
-		wmi_err("malloc failed");
 		qdf_nbuf_free(ev);
 		return QDF_STATUS_E_NOMEM;
 	}
@@ -2263,7 +2233,6 @@ static void wmi_process_control_rx(struct wmi_unified *wmi_handle,
 	id = WMI_GET_FIELD(qdf_nbuf_data(evt_buf), WMI_CMD_HDR, COMMANDID);
 	idx = wmi_unified_get_event_handler_ix(wmi_handle, id);
 	if (qdf_unlikely(idx == A_ERROR)) {
-		wmi_debug("no handler registered for event id 0x%x", id);
 		qdf_nbuf_free(evt_buf);
 		return;
 	}
@@ -2345,23 +2314,19 @@ QDF_STATUS wmi_unified_cmd_send_over_qmi(struct wmi_unified *wmi_handle,
 	int32_t ret;
 
 	if (!qdf_nbuf_push_head(buf, sizeof(WMI_CMD_HDR))) {
-		wmi_err("Failed to send cmd %x, no memory", cmd_id);
 		return QDF_STATUS_E_NOMEM;
 	}
 
 	qdf_mem_zero(qdf_nbuf_data(buf), sizeof(WMI_CMD_HDR));
 	WMI_SET_FIELD(qdf_nbuf_data(buf), WMI_CMD_HDR, COMMANDID, cmd_id);
-	wmi_debug("Sending WMI_CMD_ID: 0x%x over qmi", cmd_id);
 	status = qdf_wmi_send_recv_qmi(qdf_nbuf_data(buf),
 				       buflen + sizeof(WMI_CMD_HDR),
 				       wmi_handle,
 				       wmi_process_qmi_fw_event);
 	if (QDF_IS_STATUS_ERROR(status)) {
 		qdf_nbuf_pull_head(buf, sizeof(WMI_CMD_HDR));
-		wmi_warn("WMI send on QMI failed. Retrying WMI on HTC");
 	} else {
 		ret = qdf_atomic_inc_return(&wmi_handle->num_stats_over_qmi);
-		wmi_debug("num stats over qmi: %d", ret);
 		wmi_buf_free(buf);
 	}
 
@@ -2383,7 +2348,6 @@ static int __wmi_process_qmi_fw_event(void *wmi_cb_ctx, void *buf, int len)
 
 	qdf_mem_copy(qdf_nbuf_data(evt_buf), buf, len);
 	evt_id = WMI_GET_FIELD(qdf_nbuf_data(evt_buf), WMI_CMD_HDR, COMMANDID);
-	wmi_debug("Received WMI_EVT_ID: %d over qmi", evt_id);
 	wmi_process_control_rx(wmi_handle, evt_buf);
 
 	return 0;

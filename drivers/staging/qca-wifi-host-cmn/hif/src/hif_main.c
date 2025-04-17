@@ -698,7 +698,6 @@ void hif_close(struct hif_opaque_softc *hif_ctx)
 	}
 
 	if (scn->athdiag_procfs_inited) {
-		athdiag_procfs_remove();
 		scn->athdiag_procfs_inited = false;
 	}
 

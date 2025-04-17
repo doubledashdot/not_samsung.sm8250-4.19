@@ -1586,8 +1586,6 @@ bool wmi_service_enabled(wmi_unified_t wmi_handle, uint32_t service_id)
 			return wmi_handle->ops->is_service_enabled(wmi_handle,
 				wmi_handle->services[service_id]);
 		}
-	} else {
-		wmi_info("Service %d not supported", service_id);
 	}
 
 	return false;

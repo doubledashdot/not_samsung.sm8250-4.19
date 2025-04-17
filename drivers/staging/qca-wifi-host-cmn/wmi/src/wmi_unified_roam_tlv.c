@@ -1130,7 +1130,6 @@ send_roam_scan_offload_mode_cmd_tlv(wmi_unified_t wmi_handle,
 #endif /* WLAN_FEATURE_ROAM_OFFLOAD */
 	      sizeof(wmi_start_scan_cmd_fixed_param);
 #ifdef WLAN_FEATURE_ROAM_OFFLOAD
-	wmi_debug("auth_mode = %d", auth_mode);
 	if (roam_req->is_roam_req_valid &&
 	    roam_req->roam_offload_enabled) {
 		len += sizeof(wmi_roam_offload_tlv_param);
@@ -2052,10 +2051,6 @@ static QDF_STATUS send_roam_scan_offload_rssi_change_cmd_tlv(wmi_unified_t wmi_h
 			 status);
 		goto error;
 	}
-
-	wmi_nofl_debug("roam_scan_rssi_change_thresh %d bcn_rssi_weight %d hirssi_delay_btw_scans %d",
-		       rssi_change_thresh, bcn_rssi_weight,
-		       hirssi_delay_btw_scans);
 
 	return QDF_STATUS_SUCCESS;
 error:

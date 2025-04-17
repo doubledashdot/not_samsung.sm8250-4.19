@@ -964,7 +964,6 @@ static QDF_STATUS extract_gtk_rsp_event_tlv(wmi_unified_t wmi_handle,
 		param_buf->fixed_param;
 
 	if (fixed_param->vdev_id >= WLAN_UMAC_PSOC_MAX_VDEVS) {
-		wmi_err_rl("Invalid vdev_id %u", fixed_param->vdev_id);
 		return QDF_STATUS_E_INVAL;
 	}
 

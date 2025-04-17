@@ -242,7 +242,6 @@ void hif_ipci_disable_bus(struct hif_softc *scn)
 	if (mem) {
 		hif_dump_pipe_debug_count(scn);
 		if (scn->athdiag_procfs_inited) {
-			athdiag_procfs_remove();
 			scn->athdiag_procfs_inited = false;
 		}
 		scn->mem = NULL;

@@ -38,18 +38,15 @@ extract_interop_issues_ap_ev_param_tlv(wmi_unified_t wmi_handle, void *evt_buf,
 		(WMI_PDEV_RAP_INFO_EVENTID_param_tlvs *)evt_buf;
 
 	if (!param_buf) {
-		wmi_err_rl("Invalid param_buf");
 		return -EINVAL;
 	}
 
 	fixed_param = param_buf->fixed_param;
 	if (!fixed_param) {
-		wmi_err_rl("Invalid fixed_praram");
 		return -EINVAL;
 	}
 
 	if (fixed_param->type != WMI_ROGUE_AP_ON_STA_PS) {
-		wmi_err_rl("Invalid type");
 		return -EINVAL;
 	}
 

@@ -2789,7 +2789,6 @@ void hif_ce_stop(struct hif_softc *scn)
 	 */
 
 	if (scn->athdiag_procfs_inited) {
-		athdiag_procfs_remove();
 		scn->athdiag_procfs_inited = false;
 	}
 
@@ -3372,7 +3371,6 @@ void hif_unconfig_ce(struct hif_softc *hif_sc)
 		}
 	}
 	if (hif_sc->athdiag_procfs_inited) {
-		athdiag_procfs_remove();
 		hif_sc->athdiag_procfs_inited = false;
 	}
 }
@@ -3609,10 +3607,6 @@ int hif_config_ce(struct hif_softc *scn)
 		ce_register_irq(hif_state, (1 << pipe_num));
 	}
 
-	if (athdiag_procfs_init(scn) != 0) {
-		A_TARGET_ACCESS_UNLIKELY(scn);
-		goto err;
-	}
 	scn->athdiag_procfs_inited = true;
 
 	HIF_DBG("%s: ce_init done", __func__);
