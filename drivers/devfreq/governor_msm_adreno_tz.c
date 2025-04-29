@@ -22,6 +22,7 @@
 static DEFINE_SPINLOCK(tz_lock);
 static DEFINE_SPINLOCK(sample_lock);
 static DEFINE_SPINLOCK(sample_load_lock);
+static DEFINE_SPINLOCK(suspend_lock);
 /*
  * FLOOR is 5msec to capture up to 3 re-draws
  * per frame for 60fps content.
@@ -68,8 +69,8 @@ struct gpu_load_queue {
 	int tail;
 };
 
-static atomic_long_t suspend_time, suspend_time_idd;
-static atomic_long_t suspend_start, suspend_start_idd;
+static u64 suspend_time, suspend_time_idd;
+static u64 suspend_start, suspend_start_idd;
 static unsigned long acc_total, acc_relative_busy;
 static unsigned long gpu_load_total, gpu_load_rel_busy;
 static struct gpu_load_queue *gpu_load_infos;
@@ -85,18 +86,18 @@ static struct workqueue_struct *workqueue;
 /*
  * Returns GPU suspend time in millisecond.
  */
-static s64 suspend_time_ms(void)
+u64 suspend_time_ms(void)
 {
-	s64 suspend_sampling_time;
-	s64 time_diff;
+	u64 suspend_sampling_time;
+	u64 time_diff = 0;
 
-	if (!atomic_long_read(&suspend_start))
+	if (suspend_start == 0)
 		return 0;
 
-	suspend_sampling_time = ktime_to_ms(ktime_get());
-	time_diff = suspend_sampling_time - atomic_long_read(&suspend_start);
+	suspend_sampling_time = (u64)ktime_to_ms(ktime_get());
+	time_diff = suspend_sampling_time - suspend_start;
 	/* Update the suspend_start sample again */
-	atomic_long_set(&suspend_start, suspend_sampling_time);
+	suspend_start = suspend_sampling_time;
 	return time_diff;
 }
 
@@ -105,13 +106,13 @@ u64 suspend_time_ms_idd(void)
 	u64 suspend_sampling_time;
 	u64 time_diff = 0;
 
-	if (!atomic_long_read(&suspend_start_idd))
+	if (suspend_start_idd == 0)
 		return 0;
 
-	suspend_sampling_time = ktime_to_ms(ktime_get());
-	time_diff = suspend_sampling_time - atomic_long_read(&suspend_start_idd);
+	suspend_sampling_time = (u64)ktime_to_ms(ktime_get());
+	time_diff = suspend_sampling_time - suspend_start_idd;
 	/* Update the suspend_start sample again */
-	atomic_long_set(&suspend_start_idd, suspend_sampling_time);
+	suspend_start_idd = suspend_sampling_time;
 	return time_diff;
 }
 
@@ -273,8 +274,9 @@ static ssize_t suspend_time_show(struct device *dev,
 	struct device_attribute *attr,
 	char *buf)
 {
-	s64 time_diff;
+	u64 time_diff = 0;
 
+	spin_lock(&suspend_lock);
 	time_diff = suspend_time_ms();
 	/*
 	 * Adding the previous suspend time also as the gpu
@@ -282,8 +284,9 @@ static ssize_t suspend_time_show(struct device *dev,
 	 * reads also and we should have the total suspend
 	 * since last read.
 	 */
-	time_diff += atomic_long_read(&suspend_time);
-	atomic_long_set(&suspend_time, 0);
+	time_diff += suspend_time;
+	suspend_time = 0;
+	spin_unlock(&suspend_lock);
 
 	return snprintf(buf, PAGE_SIZE, "%llu\n", time_diff);
 }
@@ -292,8 +295,9 @@ static ssize_t suspend_time_idd_show(struct device *dev,
 	struct device_attribute *attr,
 	char *buf)
 {
-	s64 time_diff;
+	u64 time_diff = 0;
 
+	spin_lock(&suspend_lock);
 	time_diff = suspend_time_ms_idd();
 	/*
 	 * Adding the previous suspend time also as the gpu
@@ -301,8 +305,8 @@ static ssize_t suspend_time_idd_show(struct device *dev,
 	 * reads also and we should have the total suspend
 	 * since last read.
 	 */
-	time_diff += atomic_long_read(&suspend_time);
-  	atomic_long_add(time_diff, &suspend_time_idd);
+	suspend_time_idd += time_diff;
+	spin_unlock(&suspend_lock);
 
 	return snprintf(buf, PAGE_SIZE, "%llu\n", suspend_time_idd);
 }
@@ -805,27 +809,31 @@ static int tz_handler(struct devfreq *devfreq, unsigned int event, void *data)
 		if (partner_gpu_profile && partner_gpu_profile->bus_devfreq)
 			queue_work(workqueue,
 				&gpu_profile->partner_stop_event_ws);
-		atomic_long_set(&suspend_start, 0);
+		spin_lock(&suspend_lock);
+		suspend_start = 0;
+		spin_unlock(&suspend_lock);
 		result = tz_stop(devfreq);
 		break;
 
 	case DEVFREQ_GOV_SUSPEND:
 		result = tz_suspend(devfreq);
 		if (!result) {
-		        s64 suspend_sampling_time;
+			spin_lock(&suspend_lock);
 			/* Collect the start sample for suspend time */
-			suspend_sampling_time = ktime_to_ms(ktime_get());
-			atomic_long_set(&suspend_start, suspend_sampling_time);
-			atomic_long_set(&suspend_start_idd, suspend_sampling_time);
+			suspend_start = (u64)ktime_to_ms(ktime_get());
+			suspend_start_idd = suspend_start;
+			spin_unlock(&suspend_lock);
 		}
 		break;
 
 	case DEVFREQ_GOV_RESUME:
-		atomic_long_add(suspend_time_ms(), &suspend_time);
-		atomic_long_add(suspend_time_ms_idd(), &suspend_time_idd);
+		spin_lock(&suspend_lock);
+		suspend_time += suspend_time_ms();
+		suspend_time_idd += suspend_time_ms_idd();
 		/* Reset the suspend_start when gpu resumes */
-		atomic_long_set(&suspend_start, 0);
-		atomic_long_set(&suspend_start_idd, 0);
+		suspend_start = 0;
+		suspend_start_idd = 0;
+		spin_unlock(&suspend_lock);
 		/* fallthrough */
 	case DEVFREQ_GOV_INTERVAL:
 		/* fallthrough, this governor doesn't use polling */
