@@ -138,12 +138,16 @@ Description:
 		amount of writeback ZRAM can do. The limit could be changed
 		in run time.
 
-What:		/sys/block/zram<id>/use_dedup
-Date:		March 2017
-Contact:	Joonsoo Kim <iamjoonsoo.kim@lge.com>
+What:		/sys/block/zram<id>/recomp_algorithm
+Date:		November 2022
+Contact:	Sergey Senozhatsky <senozhatsky@chromium.org>
 Description:
-		The use_dedup file is read-write and specifies deduplication
-		feature is used or not. If enabled, duplicated data is
-		managed by reference count and will not be stored in memory
-		twice. Benefit of this feature largely depends on the workload
-		so keep attention when use.
+		The recomp_algorithm file is read-write and allows to set
+		or show secondary compression algorithms.
+
+What:		/sys/block/zram<id>/recompress
+Date:		November 2022
+Contact:	Sergey Senozhatsky <senozhatsky@chromium.org>
+Description:
+		The recompress file is write-only and triggers re-compression
+		with secondary compression algorithms.
