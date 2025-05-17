@@ -12844,7 +12844,7 @@ struct sk_buff *__cfg80211_alloc_reply_skb(struct wiphy *wiphy,
 {
 	struct cfg80211_registered_device *rdev = wiphy_to_rdev(wiphy);
 
-	if (WARN_ON(!rdev->cur_cmd_info))
+	if (!rdev->cur_cmd_info)
 		return NULL;
 
 	return __cfg80211_alloc_vendor_skb(rdev, NULL, approxlen,
