@@ -20,7 +20,6 @@
 #include "kona-sec-memory-common.dtsi"
 #include "kona-sec-uart-common.dtsi"
 #include "kona-sec-pcie-common.dtsi"
-#include "kona-sec-dcc-common.dtsi"
 #include "kona-sec-pm-common.dtsi"
 #include "kona-sec-pm8150b-common.dtsi"
 #include "kona-sec-sensor-common.dtsi"
