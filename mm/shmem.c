@@ -1621,7 +1621,7 @@ static int shmem_swapin_page(struct inode *inode, pgoff_t index,
 	swp_entry_t swap;
 	int error;
 
-	VM_BUG_ON(!*pagep || !radix_tree_exceptional_entry(*pagep));
+	VM_BUG_ON(!*pagep || !xa_is_value(*pagep));
 	swap = radix_to_swp_entry(*pagep);
 	*pagep = NULL;
 
@@ -1755,7 +1755,7 @@ repeat:
 	page = find_lock_entry(mapping, index);
 
 	if (page && vma && userfaultfd_minor(vma)) {
-		if (!radix_tree_exceptional_entry(page)) {
+		if (!xa_is_value(page)) {
 			unlock_page(page);
 			put_page(page);
 		}
@@ -1763,7 +1763,7 @@ repeat:
 		return 0;
 	}
 
-	if (radix_tree_exceptional_entry(page)) {
+	if (xa_is_value(page)) {
 		error = shmem_swapin_page(inode, index, &page,
 					  sgp, gfp, vma, fault_type);
 		if (error == -EEXIST)
@@ -1867,8 +1867,10 @@ alloc_nohuge:
 					    PageTransHuge(page));
 	if (error)
 		goto unacct;
-		error = shmem_add_to_page_cache(page, mapping, hindex,
-						NULL, gfp & GFP_RECLAIM_MASK);
+
+	error = shmem_add_to_page_cache(page, mapping, hindex,
+					NULL, gfp & GFP_RECLAIM_MASK);
+
 	if (error) {
 		mem_cgroup_cancel_charge(page, memcg,
 					 PageTransHuge(page));
