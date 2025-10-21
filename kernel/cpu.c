@@ -2097,8 +2097,10 @@ static ssize_t write_cpuhp_target(struct device *dev,
 
 	if (st->state < target)
 		ret = do_cpu_up(dev->id, target);
-	else
+	else if (st->state > target)
 		ret = do_cpu_down(dev->id, target);
+	else if (WARN_ON(st->target != target))
+		st->target = target;
 out:
 	unlock_device_hotplug();
 	return ret ? ret : count;
