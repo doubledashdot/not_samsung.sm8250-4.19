@@ -1375,21 +1375,6 @@ static inline void clear_page_pfmemalloc(struct page *page)
 	page->index = 0;
 }
 
-#include <linux/sched/signal.h>
-/*
- * This should only be used in fault handlers to decide whether we
- * should stop the current fault routine to handle the signals
- * instead, especially with the case where we've got interrupted with
- * a VM_FAULT_RETRY.
- */
-static inline bool fault_signal_pending(vm_fault_t fault_flags,
-                                        struct pt_regs *regs)
-{
-        return unlikely((fault_flags & VM_FAULT_RETRY) &&
-                        (fatal_signal_pending(current) ||
-                         (user_mode(regs) && signal_pending(current))));
-}
-
 /*
  * Different kinds of faults, as returned by handle_mm_fault().
  * Used to decide whether a process gets delivered SIGBUS or
@@ -1435,6 +1420,21 @@ static inline bool fault_signal_pending(vm_fault_t fault_flags,
 /* Encode hstate index for a hwpoisoned large page */
 #define VM_FAULT_SET_HINDEX(x) ((x) << 12)
 #define VM_FAULT_GET_HINDEX(x) (((x) >> 12) & 0xf)
+
+#include <linux/sched/signal.h>
+/*
+ * This should only be used in fault handlers to decide whether we
+ * should stop the current fault routine to handle the signals
+ * instead, especially with the case where we've got interrupted with
+ * a VM_FAULT_RETRY.
+ */
+static inline bool fault_signal_pending(vm_fault_t fault_flags,
+                                        struct pt_regs *regs)
+{
+        return unlikely((fault_flags & VM_FAULT_RETRY) &&
+                        (fatal_signal_pending(current) ||
+                         (user_mode(regs) && signal_pending(current))));
+}
 
 /*
  * Can be called by the pagefault handler when it gets a VM_FAULT_OOM.
