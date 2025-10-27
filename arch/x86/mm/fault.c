@@ -985,7 +985,7 @@ bad_area_access_error(struct pt_regs *regs, unsigned long error_code,
 
 static void
 do_sigbus(struct pt_regs *regs, unsigned long error_code, unsigned long address,
-	  vm_fault_t fault)
+	  unsigned int fault)
 {
 	struct task_struct *tsk = current;
 
