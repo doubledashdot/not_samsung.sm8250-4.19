@@ -190,21 +190,6 @@
 	compatible = "regulator-fixed-disable";
 };
 
-/* disp_rdump_memory mem node is reserved memory for upload mode bootloader framebuffer.
- * In most all case, upload display has HD resolution, like 720x1520, and it requires
- * only about 4MB for upload xbl framebuffer, so 8MB is enough for that. In that case,
- * you can reduce disp_rdump_memory size to allow system utilize more system ram memory.
- *
- * In case of hubble, it uses WQHD (1440x3200) in upload mode, same with normal booting mode,
- * hubble should increase disp_rdump_memory size up to 18 MB,
- * to prevent memory corruption by upload framebuffer.
- */
-&disp_rdump_memory {
-	/* size: 18 MB, hubble upload display (WQHD): 1440x3200x4 = about 17.58MB, round up to 18 MB */
-	reg = <0x0 0x9c000000 0x0 0x1200000>;
-};
-
-
 /* override display-list / supply for samsung panel */
 &sde_dsi {
 	vci-supply = <&s2dos05_l4>; /* 3.0V, S2DOS05 LDO4 */

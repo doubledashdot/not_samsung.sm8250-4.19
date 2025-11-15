@@ -71,12 +71,6 @@
 	status = "disabled";
 };	
 
-/* Display: CONFIG_DISPLAY_SAMSUNG */
-&disp_rdump_memory {
-	/* default upload fb size: max 20 MB (WQXGA 2800x1752) */
-	reg = <0x0 0x9c000000 0x0 0x01388000>;
-};
-
 &mdm0 {
 	pinctrl-names = "mdm_active", "mdm_suspend";
 	pinctrl-0 = <&ap2mdm_active &mdm2ap_active>;
