@@ -26,25 +26,28 @@
 #include <linux/skbuff.h>
 #include <linux/inet_diag.h>
 #include <net/tcp.h>
+#include <linux/win_minmax.h>
+
+#define CAL_SCALE 8
+#define CAL_UNIT (1 << CAL_SCALE)
+
+#define BW_SCALE 24
+#define BW_UNIT (1 << BW_SCALE)
+
+static int debug = 0;
+module_param(debug, int, 0644);
 
 /* TCP Westwood structure */
 struct westwood {
-	u32    bw_ns_est;        /* first bandwidth estimation..not too smoothed 8) */
-	u32    bw_est;           /* bandwidth estimate */
-	u32    rtt_win_sx;       /* here starts a new evaluation... */
-	u32    bk;
-	u32    snd_una;          /* used for evaluating the number of acked bytes */
-	u32    cumul_ack;
-	u32    accounted;
+	u32    last_bdp;
 	u32    rtt;
-	u32    rtt_min;          /* minimum observed RTT */
-	u8     first_ack;        /* flag which infers that this is the first ack */
-	u8     reset_rtt_min;    /* Reset RTT min to next RTT sample*/
+	u32    min_rtt_us;          /* minimum observed RTT */
+	u32    rtt_cnt;
+	u32    next_rtt_delivered;
+	struct minmax bw;
+	u32    prior_cwnd;
+	u8     prev_ca_state;
 };
-
-/* TCP Westwood functions and constants */
-#define TCP_WESTWOOD_RTT_MIN   (HZ/20)	/* 50ms */
-#define TCP_WESTWOOD_INIT_RTT  (20*HZ)	/* maybe too conservative?! */
 
 /*
  * @tcp_westwood_create
@@ -61,179 +64,12 @@ static void tcp_westwood_init(struct sock *sk)
 {
 	struct westwood *w = inet_csk_ca(sk);
 
-	w->bk = 0;
-	w->bw_ns_est = 0;
-	w->bw_est = 0;
-	w->accounted = 0;
-	w->cumul_ack = 0;
-	w->reset_rtt_min = 1;
-	w->rtt_min = w->rtt = TCP_WESTWOOD_INIT_RTT;
-	w->rtt_win_sx = tcp_jiffies32;
-	w->snd_una = tcp_sk(sk)->snd_una;
-	w->first_ack = 1;
-}
-
-/*
- * @westwood_do_filter
- * Low-pass filter. Implemented using constant coefficients.
- */
-static inline u32 westwood_do_filter(u32 a, u32 b)
-{
-	return ((7 * a) + b) >> 3;
-}
-
-static void westwood_filter(struct westwood *w, u32 delta)
-{
-	/* If the filter is empty fill it with the first sample of bandwidth  */
-	if (w->bw_ns_est == 0 && w->bw_est == 0) {
-		w->bw_ns_est = w->bk / delta;
-		w->bw_est = w->bw_ns_est;
-	} else {
-		w->bw_ns_est = westwood_do_filter(w->bw_ns_est, w->bk / delta);
-		w->bw_est = westwood_do_filter(w->bw_est, w->bw_ns_est);
-	}
-}
-
-/*
- * @westwood_pkts_acked
- * Called after processing group of packets.
- * but all westwood needs is the last sample of srtt.
- */
-static void tcp_westwood_pkts_acked(struct sock *sk,
-				    const struct ack_sample *sample)
-{
-	struct westwood *w = inet_csk_ca(sk);
-
-	if (sample->rtt_us > 0)
-		w->rtt = usecs_to_jiffies(sample->rtt_us);
-}
-
-/*
- * @westwood_update_window
- * It updates RTT evaluation window if it is the right moment to do
- * it. If so it calls filter for evaluating bandwidth.
- */
-static void westwood_update_window(struct sock *sk)
-{
-	struct westwood *w = inet_csk_ca(sk);
-	s32 delta = tcp_jiffies32 - w->rtt_win_sx;
-
-	/* Initialize w->snd_una with the first acked sequence number in order
-	 * to fix mismatch between tp->snd_una and w->snd_una for the first
-	 * bandwidth sample
-	 */
-	if (w->first_ack) {
-		w->snd_una = tcp_sk(sk)->snd_una;
-		w->first_ack = 0;
-	}
-
-	/*
-	 * See if a RTT-window has passed.
-	 * Be careful since if RTT is less than
-	 * 50ms we don't filter but we continue 'building the sample'.
-	 * This minimum limit was chosen since an estimation on small
-	 * time intervals is better to avoid...
-	 * Obviously on a LAN we reasonably will always have
-	 * right_bound = left_bound + WESTWOOD_RTT_MIN
-	 */
-	if (w->rtt && delta > max_t(u32, w->rtt, TCP_WESTWOOD_RTT_MIN)) {
-		westwood_filter(w, delta);
-
-		w->bk = 0;
-		w->rtt_win_sx = tcp_jiffies32;
-	}
-}
-
-static inline void update_rtt_min(struct westwood *w)
-{
-	if (w->reset_rtt_min) {
-		w->rtt_min = w->rtt;
-		w->reset_rtt_min = 0;
-	} else
-		w->rtt_min = min(w->rtt, w->rtt_min);
-}
-
-/*
- * @westwood_fast_bw
- * It is called when we are in fast path. In particular it is called when
- * header prediction is successful. In such case in fact update is
- * straight forward and doesn't need any particular care.
- */
-static inline void westwood_fast_bw(struct sock *sk)
-{
-	const struct tcp_sock *tp = tcp_sk(sk);
-	struct westwood *w = inet_csk_ca(sk);
-
-	westwood_update_window(sk);
-
-	w->bk += tp->snd_una - w->snd_una;
-	w->snd_una = tp->snd_una;
-	update_rtt_min(w);
-}
-
-/*
- * @westwood_acked_count
- * This function evaluates cumul_ack for evaluating bk in case of
- * delayed or partial acks.
- */
-static inline u32 westwood_acked_count(struct sock *sk)
-{
-	const struct tcp_sock *tp = tcp_sk(sk);
-	struct westwood *w = inet_csk_ca(sk);
-
-	w->cumul_ack = tp->snd_una - w->snd_una;
-
-	/* If cumul_ack is 0 this is a dupack since it's not moving
-	 * tp->snd_una.
-	 */
-	if (!w->cumul_ack) {
-		w->accounted += tp->mss_cache;
-		w->cumul_ack = tp->mss_cache;
-	}
-
-	if (w->cumul_ack > tp->mss_cache) {
-		/* Partial or delayed ack */
-		if (w->accounted >= w->cumul_ack) {
-			w->accounted -= w->cumul_ack;
-			w->cumul_ack = tp->mss_cache;
-		} else {
-			w->cumul_ack -= w->accounted;
-			w->accounted = 0;
-		}
-	}
-
-	w->snd_una = tp->snd_una;
-
-	return w->cumul_ack;
-}
-
-/*
- * TCP Westwood
- * Here limit is evaluated as Bw estimation*RTTmin (for obtaining it
- * in packets we use mss_cache). Rttmin is guaranteed to be >= 2
- * so avoids ever returning 0.
- */
-static u32 tcp_westwood_bw_rttmin(const struct sock *sk)
-{
-	const struct tcp_sock *tp = tcp_sk(sk);
-	const struct westwood *w = inet_csk_ca(sk);
-
-	return max_t(u32, (w->bw_est * w->rtt_min) / tp->mss_cache, 2);
-}
-
-static void tcp_westwood_ack(struct sock *sk, u32 ack_flags)
-{
-	if (ack_flags & CA_ACK_SLOWPATH) {
-		struct westwood *w = inet_csk_ca(sk);
-
-		westwood_update_window(sk);
-		w->bk += westwood_acked_count(sk);
-
-		update_rtt_min(w);
-		return;
-	}
-
-	westwood_fast_bw(sk);
+	w->last_bdp = TCP_INIT_CWND;
+	w->prior_cwnd = TCP_INIT_CWND;
+	w->min_rtt_us = 0x7fffffff;
+	w->rtt_cnt = 0;
+	minmax_reset(&w->bw, w->rtt_cnt, 0);
+	w->next_rtt_delivered = 0;
 }
 
 static void tcp_westwood_event(struct sock *sk, enum tcp_ca_event event)
@@ -243,17 +79,94 @@ static void tcp_westwood_event(struct sock *sk, enum tcp_ca_event event)
 
 	switch (event) {
 	case CA_EVENT_COMPLETE_CWR:
-		tp->snd_cwnd = tp->snd_ssthresh = tcp_westwood_bw_rttmin(sk);
-		break;
-	case CA_EVENT_LOSS:
-		tp->snd_ssthresh = tcp_westwood_bw_rttmin(sk);
-		/* Update RTT_min when next ack arrives */
-		w->reset_rtt_min = 1;
+		tp->snd_cwnd = tp->snd_ssthresh = w->last_bdp;
 		break;
 	default:
 		/* don't care */
 		break;
 	}
+}
+
+static void tcp_westwood_state(struct sock *sk, u8 new_state)
+{
+	struct tcp_sock *tp = tcp_sk(sk);
+
+	if (new_state == TCP_CA_Loss) {
+		tp->snd_cwnd = tcp_packets_in_flight(tp) + 1;
+	}
+}
+
+static u32 tcp_westwood_undo_cwnd(struct sock *sk)
+{
+	struct westwood *w = inet_csk_ca(sk);
+
+	return max_t(u32, 2, w->prior_cwnd);
+}
+
+static u32 tcp_westwood_ssthresh(struct sock *sk)
+{
+	struct tcp_sock *tp = tcp_sk(sk);
+	struct westwood *w = inet_csk_ca(sk);
+
+	w->prior_cwnd = tp->snd_cwnd;
+	return tcp_sk(sk)->snd_ssthresh;
+}
+
+static void tcp_westwood_cwnd_reduction(struct sock *sk, int newly_acked_sacked, int fast_rexmit)
+{
+	struct tcp_sock *tp = tcp_sk(sk);
+	int sndcnt = 0;
+	int delta = tp->snd_ssthresh - tcp_packets_in_flight(tp);
+
+	tp->prr_delivered += newly_acked_sacked;
+	if (tcp_packets_in_flight(tp) > tp->snd_ssthresh) {
+		u64 dividend = (u64)tp->snd_ssthresh * tp->prr_delivered + tp->prior_cwnd - 1;
+		sndcnt = div_u64(dividend, tp->prior_cwnd) - tp->prr_out;
+	} else {
+		sndcnt = min_t(int, delta, max_t(int, tp->prr_delivered - tp->prr_out, newly_acked_sacked) + 1);
+	}
+
+	sndcnt = max(sndcnt, (fast_rexmit ? 1 : 0));
+	tp->snd_cwnd = tcp_packets_in_flight(tp) + sndcnt;
+}
+
+static void tcp_westwood_cong_control(struct sock *sk, const struct rate_sample *rs)
+{
+	struct tcp_sock *tp = tcp_sk(sk);
+	struct westwood *w = inet_csk_ca(sk);
+	u8 prev_state = w->prev_ca_state, state = inet_csk(sk)->icsk_ca_state;
+	u64 bw, bdp;
+
+	if (!before(rs->prior_delivered, w->next_rtt_delivered)) {
+		w->next_rtt_delivered = tp->delivered;
+		w->rtt_cnt++;
+	}
+
+	bw = (u64)rs->delivered * BW_UNIT;
+	do_div(bw, rs->interval_us);
+	minmax_running_max(&w->bw, 10, w->rtt_cnt, bw);
+
+	if (rs->rtt_us > 0 && rs->rtt_us <= w->min_rtt_us)
+		w->min_rtt_us = rs->rtt_us;
+
+	w->prev_ca_state = state;
+	if (state == TCP_CA_Recovery && prev_state != TCP_CA_Recovery) {
+		if (w->min_rtt_us == 0x7fffffff)
+			w->last_bdp = TCP_INIT_CWND;
+		else {
+			bw = minmax_get(&w->bw);
+			bdp = (u64)bw * w->min_rtt_us;
+			w->last_bdp = (((bdp * CAL_UNIT) >> CAL_SCALE) + BW_UNIT - 1) / BW_UNIT;
+		}
+		tp->snd_ssthresh = max_t(u32, 2, tp->snd_cwnd >> 1);
+	} else if (state == TCP_CA_Open && prev_state != TCP_CA_Open) {
+		tp->snd_cwnd = w->last_bdp;
+		tcp_westwood_cwnd_reduction(sk, rs->acked_sacked, 1);
+	} else if (state == TCP_CA_Open) {
+		tcp_reno_cong_avoid(sk, 0, rs->acked_sacked);
+	}
+	if (debug)
+		printk("##st:%d->%d bw:%llu last_bdp:%d cwnd:%d minrtt:%d\n", prev_state, state, bw, w->last_bdp, tp->snd_cwnd, w->min_rtt_us);
 }
 
 /* Extract info for Tcp socket info provided via netlink. */
@@ -266,7 +179,7 @@ static size_t tcp_westwood_info(struct sock *sk, u32 ext, int *attr,
 		info->vegas.tcpv_enabled = 1;
 		info->vegas.tcpv_rttcnt	= 0;
 		info->vegas.tcpv_rtt	= jiffies_to_usecs(ca->rtt);
-		info->vegas.tcpv_minrtt	= jiffies_to_usecs(ca->rtt_min);
+		info->vegas.tcpv_minrtt	= ca->min_rtt_us;
 
 		*attr = INET_DIAG_VEGASINFO;
 		return sizeof(struct tcpvegas_info);
@@ -276,14 +189,12 @@ static size_t tcp_westwood_info(struct sock *sk, u32 ext, int *attr,
 
 static struct tcp_congestion_ops tcp_westwood __read_mostly = {
 	.init		= tcp_westwood_init,
-	.ssthresh	= tcp_reno_ssthresh,
-	.cong_avoid	= tcp_reno_cong_avoid,
-	.undo_cwnd      = tcp_reno_undo_cwnd,
+	.ssthresh	= tcp_westwood_ssthresh,
+	.cong_control   = tcp_westwood_cong_control,
+	.undo_cwnd      = tcp_westwood_undo_cwnd,
+	.set_state	= tcp_westwood_state,
 	.cwnd_event	= tcp_westwood_event,
-	.in_ack_event	= tcp_westwood_ack,
 	.get_info	= tcp_westwood_info,
-	.pkts_acked	= tcp_westwood_pkts_acked,
-
 	.owner		= THIS_MODULE,
 	.name		= "westwood"
 };
