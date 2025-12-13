@@ -149,8 +149,6 @@ config GENERIC_TRACER
 	bool
 	select TRACING
 
-if TRACING
-
 config DISABLE_TRACE_PRINTK
 	bool "Force disable trace_printk() usage"
 	default y
@@ -160,8 +158,6 @@ config DISABLE_TRACE_PRINTK
 	  Enabling this option will replace trace_printk() with pr_debug().
 
 	  If in doubt, say Y.
-
-endif
 
 #
 # Minimum requirements an architecture has to meet for us to
