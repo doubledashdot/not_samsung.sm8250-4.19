@@ -67,8 +67,8 @@ EXPORT_SYMBOL(sec_delay_check);
 static unsigned int sec_dbg_level;
 static int force_upload;
 
-static unsigned int enable = 1;
-module_param_named(enable, enable, uint, 0644);
+static unsigned int enable = 0;
+module_param_named(enable, enable, uint, 0444);
 
 #ifdef CONFIG_SEC_SSR_DEBUG_LEVEL_CHK
 static unsigned int enable_cp_debug = 1;
