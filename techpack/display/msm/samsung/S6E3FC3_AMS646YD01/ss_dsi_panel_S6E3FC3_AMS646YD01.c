@@ -175,7 +175,7 @@ static struct dsi_panel_cmd_set *__ss_vrr(struct samsung_display_driver_data *vd
 	if (cur_rr == 60) {
 		vrr_cmds->cmds[0].msg.tx_buf[1] = 0x00; /* 60 HZ */
 	} else {
-		vrr_cmds->cmds[0].msg.tx_buf[1] = 0x08; /* 120 HZ */
+		vrr_cmds->cmds[0].msg.tx_buf[1] = 0x09; /* 120+ HZ */
 	}
 
 	LCD_INFO("VRR: (cur: %d%s, adj: %d%s)\n",
