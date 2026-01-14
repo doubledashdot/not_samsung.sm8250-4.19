@@ -869,7 +869,7 @@ int sde_connector_pre_kickoff(struct drm_connector *connector)
 	if (c_conn->connector_type == DRM_MODE_CONNECTOR_DSI) {
 		/* SAMSUNG_FINGERPRINT */
 		vdd = display->panel->panel_private;
-		if (vdd->support_optical_fingerprint)
+		if (is_aosp && vdd->support_optical_fingerprint)
 			sde_connector_pre_update_fod_hbm(c_conn);
 		vdd->finger_mask_updated = false;
 		if (vdd->finger_mask_enable != vdd->finger_mask) {
