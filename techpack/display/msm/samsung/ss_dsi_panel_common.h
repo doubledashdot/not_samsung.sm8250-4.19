@@ -57,6 +57,8 @@ Copyright (C) 2012, Samsung Electronics. All rights reserved.
 
 #include <linux/dev_ril_bridge.h>
 
+#include <linux/rom_notifier.h>
+
 #include <linux/regulator/consumer.h>
 #if 0
 #if defined(CONFIG_SEC_ABC)
