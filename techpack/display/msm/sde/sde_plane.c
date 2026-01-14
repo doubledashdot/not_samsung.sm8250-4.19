@@ -1240,8 +1240,11 @@ static inline void _sde_plane_mul_csc_pcc(struct sde_plane *psde,
 				sum += csc * pcc;
 			}
 
-			sum = mult_frac(sum, fod_dim_scale,
-					PCC_ONE * FOD_DIM_ALPHA_MAX);
+			if (is_aosp)
+				sum = mult_frac(sum, fod_dim_scale,
+						PCC_ONE * FOD_DIM_ALPHA_MAX);
+			else
+				sum = div_s64(sum, PCC_ONE);
 
 			psde->csc_pcc_cfg.csc_mv[ij] = csc_to_unsigned(sum);
 		}
@@ -3409,8 +3412,10 @@ static inline void _sde_plane_set_csc_pcc(struct sde_plane *psde,
 	const struct drm_msm_pcc *pcc_cfg = sde_cp_crtc_get_pcc_cfg(crtc);
 	struct sde_crtc_state *cstate = to_sde_crtc_state(crtc->state);
 
-	if (!pcc_cfg && psde->fod_dim_alpha)
-		pcc_cfg = &sde_identity_pcc_cfg;
+	if (is_aosp) {
+		if (!pcc_cfg && psde->fod_dim_alpha)
+			pcc_cfg = &sde_identity_pcc_cfg;
+	}
 
 	if (pcc_cfg == psde->pcc_cfg)
 		return;
@@ -3523,8 +3528,8 @@ static int sde_plane_sspp_atomic_update(struct drm_plane *plane,
 	 */
 	_sde_plane_sspp_atomic_check_mode_changed(psde, state,
 								old_state);
-
-	_sde_plane_set_fod_dim_alpha(psde, pstate);
+	if (is_aosp)
+		_sde_plane_set_fod_dim_alpha(psde, pstate);
 	_sde_plane_set_csc_pcc(psde, pstate, crtc);
 
 	/* re-program the output rects always if partial update roi changed */
