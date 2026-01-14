@@ -3250,7 +3250,7 @@ int dsi_panel_set_fod_hbm(struct dsi_panel *panel, bool status)
 	else
 		vdd->br_info.common_br.finger_mask_bl_level = 0;
 
-	vdd->finger_mask_enable = status;
+	vdd->finger_mask_enable = !!status;
 
 	return 0;
 }

@@ -871,6 +871,9 @@ int sde_connector_pre_kickoff(struct drm_connector *connector)
 		vdd = display->panel->panel_private;
 		if (is_aosp && vdd->support_optical_fingerprint)
 			sde_connector_pre_update_fod_hbm(c_conn);
+		else
+			vdd->finger_mask_enable = sde_connector_get_property(c_conn->base.state,
+				CONNECTOR_PROP_FINGERPRINT_MASK);
 		vdd->finger_mask_updated = false;
 		if (vdd->finger_mask_enable != vdd->finger_mask) {
 			SDE_ERROR("[FINGER MASK]updated finger mask mode %d\n", vdd->finger_mask_enable);
@@ -2637,6 +2640,13 @@ static int _sde_connector_install_properties(struct drm_device *dev,
 	msm_property_install_range(&c_conn->property_info, "bl_scale",
 		0x0, 0, MAX_BL_SCALE_LEVEL, MAX_BL_SCALE_LEVEL,
 		CONNECTOR_PROP_BL_SCALE);
+
+#if defined(CONFIG_DISPLAY_SAMSUNG)
+	/* SAMSUNG_FINGERPRINT */
+	msm_property_install_range(&c_conn->property_info, "fingerprint_mask",
+		0x0, 0, 100, 0,
+		CONNECTOR_PROP_FINGERPRINT_MASK);
+#endif
 
 	msm_property_install_range(&c_conn->property_info, "sv_bl_scale",
 		0x0, 0, MAX_SV_BL_SCALE_LEVEL, MAX_SV_BL_SCALE_LEVEL,
