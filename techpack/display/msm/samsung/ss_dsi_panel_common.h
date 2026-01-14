@@ -1629,7 +1629,7 @@ struct samsung_display_driver_data {
 	/* SAMSUNG_FINGERPRINT */
 	bool support_optical_fingerprint;
 	bool finger_mask_updated;
-	bool finger_mask_enable;
+	u32 finger_mask_enable;
 	int finger_mask;
 	int panel_hbm_entry_delay; //hbm entry delay/ unit = vsync
 	int panel_hbm_entry_after_te; /* delay after TE noticed */
