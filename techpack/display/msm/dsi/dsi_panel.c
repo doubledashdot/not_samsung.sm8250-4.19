@@ -3373,9 +3373,11 @@ static int dsi_panel_parse_bl_config(struct dsi_panel *panel)
 	panel->bl_config.bl_inverted_dbv = utils->read_bool(utils->data,
 		"qcom,mdss-dsi-bl-inverted-dbv");
 
-    rc = dsi_panel_parse_fod_dim_lut(panel, utils);
-	if (rc)
-		DSI_ERR("[%s] failed to parse fod dim lut\n", panel->name);
+	if (is_aosp) {
+		rc = dsi_panel_parse_fod_dim_lut(panel, utils);
+		if (rc)
+			DSI_ERR("[%s] failed to parse fod dim lut\n", panel->name);
+	}
 
 	if (panel->bl_config.type == DSI_BACKLIGHT_PWM) {
 		rc = dsi_panel_parse_bl_pwm_config(panel);
