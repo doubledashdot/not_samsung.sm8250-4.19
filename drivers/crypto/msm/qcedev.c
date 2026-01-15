@@ -1782,6 +1782,7 @@ static inline long qcedev_ioctl(struct file *file,
 	struct qcedev_control *podev;
 	struct qcedev_async_req *qcedev_areq;
 	struct qcedev_stat *pstat;
+	struct scatterlist sg_src;
 
 	qcedev_areq = kzalloc(sizeof(struct qcedev_async_req), GFP_KERNEL);
 	if (!qcedev_areq)
@@ -1840,9 +1841,6 @@ static inline long qcedev_ioctl(struct file *file,
 		break;
 
 	case QCEDEV_IOCTL_SHA_INIT_REQ:
-		{
-		struct scatterlist sg_src;
-
 		if (copy_from_user(&qcedev_areq->sha_op_req,
 					(void __user *)arg,
 					sizeof(struct qcedev_sha_op_req))) {
@@ -1868,7 +1866,6 @@ static inline long qcedev_ioctl(struct file *file,
 			goto exit_free_qcedev_areq;
 		}
 		handle->sha_ctxt.init_done = true;
-		}
 		break;
 	case QCEDEV_IOCTL_GET_CMAC_REQ:
 		if (!podev->ce_support.cmac) {
@@ -1877,9 +1874,6 @@ static inline long qcedev_ioctl(struct file *file,
 		}
 		/* Fall-through */
 	case QCEDEV_IOCTL_SHA_UPDATE_REQ:
-		{
-		struct scatterlist sg_src;
-
 		if (copy_from_user(&qcedev_areq->sha_op_req,
 					(void __user *)arg,
 					sizeof(struct qcedev_sha_op_req))) {
@@ -1930,7 +1924,6 @@ static inline long qcedev_ioctl(struct file *file,
 			err = -EFAULT;
 			goto exit_free_qcedev_areq;
 		}
-		}
 		break;
 
 	case QCEDEV_IOCTL_SHA_FINAL_REQ:
@@ -1979,9 +1972,6 @@ static inline long qcedev_ioctl(struct file *file,
 		break;
 
 	case QCEDEV_IOCTL_GET_SHA_REQ:
-		{
-		struct scatterlist sg_src;
-
 		if (copy_from_user(&qcedev_areq->sha_op_req,
 					(void __user *)arg,
 					sizeof(struct qcedev_sha_op_req))) {
@@ -2022,7 +2012,6 @@ static inline long qcedev_ioctl(struct file *file,
 					sizeof(struct qcedev_sha_op_req))) {
 			err = -EFAULT;
 			goto exit_free_qcedev_areq;
-		}
 		}
 		break;
 
