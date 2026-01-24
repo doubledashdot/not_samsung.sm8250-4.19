@@ -127,7 +127,7 @@ bpf_lsm_func_proto(enum bpf_func_id func_id, const struct bpf_prog *prog)
 #ifdef CONFIG_BPF_EVENTS
                 return tracing_prog_func_proto(func_id, prog);
 #else
-                return NULL;
+                return bpf_base_func_proto(func_id);
 #endif
 	}
 }
