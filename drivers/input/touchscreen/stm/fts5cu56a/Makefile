@@ -1,3 +1,3 @@
-ccflags-y += -Wformat
+ccflags-y += -Wformat -Wno-vla-extension -Wno-vla
 
 obj-$(CONFIG_TOUCHSCREEN_STM_FTS5CU56A)	+= fts_ts.o fts_fwu.o

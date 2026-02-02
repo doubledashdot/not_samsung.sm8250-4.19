@@ -3,5 +3,5 @@
 #
 
 obj-$(CONFIG_TOUCHSCREEN_ZINITIX_ZTW522)	+= zinitix_ts.o
-ccflags-y += -Wformat
+ccflags-y += -Wformat -Wno-vla-extension -Wno-vla
 
