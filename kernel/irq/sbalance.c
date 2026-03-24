@@ -373,9 +373,12 @@ static void sbalance_wait(long poll_jiffies)
 	timer_setup_on_stack(&timer.timer, process_timeout, TIMER_DEFERRABLE);
 	timer.timer.expires = jiffies + poll_jiffies;
 	add_timer(&timer.timer);
+	freezer_do_not_count();
 	schedule();
+	freezer_count();
 	del_timer_sync(&timer.timer);
 	destroy_timer_on_stack(&timer.timer);
+	try_to_freeze();
 }
 
 static int __noreturn sbalance_thread(void *data)
