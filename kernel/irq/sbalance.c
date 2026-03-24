@@ -99,8 +99,7 @@ void sbalance_desc_del(struct irq_desc *desc)
 	spin_unlock(&bal_irq_lock);
 }
 
-static int bal_irq_move_node_cmp(void *priv, const struct list_head *lhs_p,
-				 const struct list_head *rhs_p)
+static int bal_irq_move_node_cmp(void *priv, struct list_head *lhs_p, struct list_head *rhs_p)
 {
 	const struct bal_irq *lhs = list_entry(lhs_p, typeof(*lhs), move_node);
 	const struct bal_irq *rhs = list_entry(rhs_p, typeof(*rhs), move_node);
@@ -369,7 +368,7 @@ static void sbalance_wait(long poll_jiffies)
 	 * Open code freezable_schedule_timeout_interruptible() in order to
 	 * make the timer deferrable, so that it doesn't kick CPUs out of idle.
 	 */
-	__set_current_state(TASK_IDLE | TASK_FREEZABLE);
+	__set_current_state(TASK_IDLE);
 	timer.task = current;
 	timer_setup_on_stack(&timer.timer, process_timeout, TIMER_DEFERRABLE);
 	timer.timer.expires = jiffies + poll_jiffies;
