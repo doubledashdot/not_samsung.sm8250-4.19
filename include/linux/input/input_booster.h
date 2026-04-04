@@ -18,10 +18,7 @@
 
 #define ITAG	" [Input Booster] "
 
-#define pr_booster(format, ...) { \
-	if (debug_flag) \
-		printk(ITAG format, ## __VA_ARGS__); \
-}
+#define pr_booster(format, ...) { }
 #define MAX_MULTI_TOUCH_EVENTS		10
 #define MAX_IB_COUNT	100
 #define MAX_EVENTS			(MAX_MULTI_TOUCH_EVENTS * 10)
@@ -36,10 +33,8 @@
 		{ \
 			ssize_t ret; \
 			unsigned int enable_event; \
-			unsigned int debug_level; \
 			unsigned int sendevent; \
 			enable_event = enable_event_booster; \
-			debug_level = debug_flag; \
 			sendevent = send_ev_enable; \
 			ret = sprintf _ARGU_; \
 			pr_booster("[Input Booster8] %s buf : %s\n", __func__, buf); \
@@ -48,11 +43,9 @@
 		ssize_t input_booster_sysfs_class_store_##_ATTR_(struct class *dev, struct class_attribute *attr, const char *buf, size_t count) \
 		{ \
 			unsigned int enable_event[1] = {-1}; \
-			unsigned int debug_level[1] = {-1}; \
 			unsigned int sendevent[1] = {-1}; \
 			sscanf _ARGU_; \
 			send_ev_enable = sendevent[0]; \
-			debug_flag = debug_level[0]; \
 			enable_event_booster = enable_event[0]; \
 			pr_booster("[Input Booster8] %s buf : %s\n", __func__, buf); \
 			if (sscanf _ARGU_ != _COUNT_) { \
@@ -281,7 +274,6 @@ enum booster_res_type {
 #endif
 
 extern int ib_init_succeed;
-extern unsigned int debug_flag;
 extern unsigned int enable_event_booster;
 extern spinlock_t ib_type_lock;
 
