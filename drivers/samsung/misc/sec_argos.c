@@ -28,31 +28,9 @@
 #include <linux/cpumask.h>
 #include <linux/interrupt.h>
 
-#if defined(CONFIG_ARCH_LAHAINA)
-#define ARGOS_VOTING_DDR_CLK
-#include <linux/interconnect.h>
-#endif
-
 #ifdef CONFIG_CPU_FREQ_LIMIT
 #include <linux/cpufreq.h>
 #include <linux/cpufreq_limit.h>
-
-#ifndef CONFIG_CPU_FREQ_LIMIT_USERSPACE
-#define DVFS_ARGOS_ID CFLM_ARGOS
-int set_freq_limit(unsigned long id, unsigned int freq);
-#endif
-
-#else
-#define DVFS_ARGOS_ID	0
-int set_freq_limit(unsigned long id, unsigned int freq)
-{
-	pr_err("%s is not yet implemented\n", __func__);
-	return 0;
-}
-#endif
-
-#if defined(CONFIG_ARCH_LAHAINA)
-#define ARGOS_VOTING_DDR_CLK
 #endif
 
 #define ARGOS_NAME "argos"
@@ -65,15 +43,6 @@ int set_freq_limit(unsigned long id, unsigned int freq)
 #define FREQ_UPDATE 	1
 
 #define CPU_UNLOCK_FREQ -1
-#ifdef ARGOS_VOTING_DDR_CLK
-#define DDR_UNLOCK_FREQ 0
-#endif
-
-//Refer to "include/dt-bindings/interconnect/qcom,lahaina.h"
-#define MASTER_APPSS_PROC                              2
-#define SLAVE_EBI1                             512
-#define BUS_W 4        /* SM8350 DDR Voting('w' for DDR is 4) */
-#define MHZ_TO_KBPS(mhz, w) ((uint64_t)mhz * 1000 * w)
 
 static DEFINE_SPINLOCK(argos_irq_lock);
 static DEFINE_SPINLOCK(argos_task_lock);
@@ -85,7 +54,6 @@ enum {
 	BIG_MAX_FREQ,
 	LITTLE_MIN_FREQ,
 	LITTLE_MAX_FREQ,
-	DDR_FREQ,
 	RESERVED,
 	TASK_AFFINITY_EN,
 	IRQ_AFFINITY_EN,
@@ -95,9 +63,6 @@ enum {
 
 enum {
 	BOOST_CPU,
-#ifdef ARGOS_VOTING_DDR_CLK
-	BOOST_DDR,
-#endif
 	BOOST_MAX
 };
 
@@ -148,14 +113,7 @@ struct argos_platform_data {
 static struct argos_platform_data *argos_pdata;
 static int boost_unlock_freq[BOOST_MAX] = {
 CPU_UNLOCK_FREQ
-#ifdef ARGOS_VOTING_DDR_CLK
-, DDR_UNLOCK_FREQ
-#endif
 };
-#ifdef ARGOS_VOTING_DDR_CLK
-struct icc_path *path_argos_bw;
-int argos_icc_register = 0;
-#endif
 static int argos_find_index(const char *label)
 {
 	int i;
@@ -473,20 +431,7 @@ static void argos_freq_lock(int type, int level)
 	need_update = check_update_freq(BOOST_CPU, type, target_freq);
 	if(need_update != SKIP_FREQ_UPDATE){
 		pr_info("update cpu freq %d\n", argos_pdata->boost_max[BOOST_CPU]);
-		set_freq_limit(DVFS_ARGOS_ID, argos_pdata->boost_max[BOOST_CPU]);
 	}
-#ifdef ARGOS_VOTING_DDR_CLK	
-	if(level != FREQ_UNLOCK)
-		target_freq = t->items[DDR_FREQ];
-	else
-		target_freq = boost_unlock_freq[BOOST_DDR];
-	
-	need_update = check_update_freq(BOOST_DDR, type, target_freq);
-	if(need_update != SKIP_FREQ_UPDATE){
-		pr_info("update ddr freq %d\n", argos_pdata->boost_max[BOOST_DDR]);
-		icc_set_bw(path_argos_bw, 0, MHZ_TO_KBPS(argos_pdata->boost_max[BOOST_DDR], BUS_W));
-	}
-#endif
 }
 
 void argos_block_enable(char *req_name, bool set)
@@ -538,26 +483,6 @@ static struct notifier_block argos_cpuidle_reboot_nb = {
 	.notifier_call = argos_cpuidle_reboot_notifier,
 };
 
-#ifdef ARGOS_VOTING_DDR_CLK	
-static void get_icc_path(void)
-{
-	struct device *dev = argos_pdata->dev;
-	int bus_ret = 0;
-	
-	path_argos_bw = icc_get(dev, MASTER_APPSS_PROC, SLAVE_EBI1);
-	if (IS_ERR(path_argos_bw)) {
-		bus_ret = PTR_ERR(path_argos_bw);
-		dev_err(dev, "Failed to get path_argos_bw. ret=%d\n", bus_ret);
-		if (bus_ret != -EPROBE_DEFER)
-			dev_err(dev, "Failed to get icc path. ret=%d\n", bus_ret);
-	} else {
-		dev_info(dev, "Success to get path_argos_bw.\n");
-		argos_icc_register = 1;
-	}
-
-}
-#endif
-
 static int argos_pm_qos_notify(struct notifier_block *nfb,
 			       unsigned long speedtype, void *arg)
 
@@ -573,12 +498,6 @@ static int argos_pm_qos_notify(struct notifier_block *nfb,
 		       type, argos_pdata->ndevice);
 		return NOTIFY_BAD;
 	}
-	
-#ifdef ARGOS_VOTING_DDR_CLK	
-	if (argos_icc_register == 0){
-		get_icc_path();
-	}
-#endif
 
 	speed = speedtype >> TYPE_SHIFT;
 	cnode = &argos_pdata->devices[type];
@@ -808,10 +727,6 @@ static int argos_remove(struct platform_device *pdev)
 		return 0;
 	pm_qos_remove_notifier(PM_QOS_NETWORK_THROUGHPUT, &pdata->pm_qos_nfb);
 	unregister_reboot_notifier(&argos_cpuidle_reboot_nb);
-#ifdef ARGOS_VOTING_DDR_CLK	
-	if (argos_icc_register == 1)
-		icc_put(path_argos_bw);
-#endif
 	return 0;
 }
 
