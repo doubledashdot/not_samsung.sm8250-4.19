@@ -126,7 +126,7 @@ int qbt2000_set_cpu_speedup(struct qbt2000_drvdata *drvdata, int onoff)
 	else
 		msm_bus_scale_client_update_request(bus_hdl, MHZ_NONE);
 
-#if defined(ENABLE_SENSORS_FPRINT_SECURE)	
+#if 0 //defined(ENABLE_SENSORS_FPRINT_SECURE)
 	if (drvdata->min_cpufreq_limit) {
 		if (onoff) {
 			u8 retry_cnt = 0;
@@ -136,6 +136,7 @@ int qbt2000_set_cpu_speedup(struct qbt2000_drvdata *drvdata, int onoff)
 			
 			pm_qos_add_request(&drvdata->pm_qos, PM_QOS_CPU_DMA_LATENCY, 0);
 			do {
+
 				rc = set_freq_limit(DVFS_FINGER_ID, drvdata->min_cpufreq_limit);
 				retry_cnt++;
 				if (rc) {
