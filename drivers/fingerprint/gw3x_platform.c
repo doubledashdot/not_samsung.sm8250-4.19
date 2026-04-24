@@ -55,7 +55,7 @@ int gw3x_set_cpu_speedup(struct gf_device *gf_dev, int onoff)
 {
 	int retval = 0;
 
-#if 1
+#if 0
 	int retry_cnt = 0;
 
 	if (gf_dev->min_cpufreq_limit) {
@@ -79,8 +79,6 @@ int gw3x_set_cpu_speedup(struct gf_device *gf_dev, int onoff)
 			pm_qos_remove_request(&gf_dev->pm_qos);
 		}
 	}
-#else
-	pr_info("FP_CPU_SPEEDUP does not set\n");
 #endif
 	return retval;
 }
