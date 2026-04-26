@@ -12,6 +12,7 @@
 #include <linux/slab.h>
 #include <uapi/linux/sched/types.h>
 #include <drm/drm_panel.h>
+#include "governor.h"
 
 enum {
 	SCREEN_OFF,
