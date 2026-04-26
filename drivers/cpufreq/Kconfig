@@ -226,8 +226,9 @@ config CPU_FREQ_GOV_SCHEDUTIL
 
 	  If in doubt, say N.
 
-config CPU_INPUT_BOOST
+config CPU_EVENT_BOOST
 	bool "CPU Input Boost"
+	default y
 	help
 	  Boosts the CPU on touchscreen and touchpad input, and allows for
 	  boosting on other custom events, mainly which is intended to be for
@@ -236,7 +237,7 @@ config CPU_INPUT_BOOST
 	  frame drops are near-zero at the boosted frequencies and power
 	  consumption is minimized at said frequency combination.
 
-if CPU_INPUT_BOOST
+if CPU_EVENT_BOOST
 
 config MAX_BOOST_FREQ_LP
 	int "Low-power cluster max-boost freq"

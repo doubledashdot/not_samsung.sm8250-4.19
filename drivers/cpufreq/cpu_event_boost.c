@@ -3,7 +3,7 @@
  * Copyright (C) 2018-2019 Sultan Alsawaf <sultan@kerneltoast.com>.
  */
 
-#define pr_fmt(fmt) "cpu_input_boost: " fmt
+#define pr_fmt(fmt) "cpu_event_boost: " fmt
 
 #include <linux/cpu.h>
 #include <linux/cpufreq.h>
@@ -69,7 +69,7 @@ static void update_online_cpu_policy(void)
 	put_online_cpus();
 }
 
-static void __cpu_input_boost_kick_max(struct boost_drv *b,
+static void __cpu_event_boost_kick_max(struct boost_drv *b,
 				       unsigned int duration_ms)
 {
 	unsigned long boost_jiffies = msecs_to_jiffies(duration_ms);
@@ -94,11 +94,11 @@ static void __cpu_input_boost_kick_max(struct boost_drv *b,
 		wake_up(&b->boost_waitq);
 }
 
-void cpu_input_boost_kick_max(unsigned int duration_ms)
+void cpu_event_boost_kick_max(unsigned int duration_ms)
 {
 	struct boost_drv *b = &boost_drv_g;
 
-	__cpu_input_boost_kick_max(b, duration_ms);
+	__cpu_event_boost_kick_max(b, duration_ms);
 }
 
 static void max_unboost_worker(struct work_struct *work)
@@ -159,7 +159,7 @@ static int cpu_notifier_cb(struct notifier_block *nb, unsigned long action,
 		return NOTIFY_OK;
 	}
 
-	policy->min = get_min_freq(policy);
+	policy->min = policy->cpuinfo.min_freq;
 
 	return NOTIFY_OK;
 }
@@ -186,7 +186,7 @@ static int msm_drm_notifier_cb(struct notifier_block *nb, unsigned long action,
 	return NOTIFY_OK;
 }
 
-static int __init cpu_input_boost_init(void)
+static int __init cpu_event_boost_init(void)
 {
 	struct boost_drv *b = &boost_drv_g;
 	struct task_struct *thread;
@@ -221,4 +221,4 @@ unregister_cpu_notif:
 	cpufreq_unregister_notifier(&b->cpu_notif, CPUFREQ_POLICY_NOTIFIER);
 	return ret;
 }
-late_initcall(cpu_input_boost_init);
+late_initcall(cpu_event_boost_init);
