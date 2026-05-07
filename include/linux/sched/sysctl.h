@@ -87,9 +87,11 @@ extern unsigned int sysctl_irqsoff_tracing_threshold_ns;
 static unsigned int sysctl_sched_boost;
 static unsigned int sysctl_sched_prefer_spread;
 static unsigned int sysctl_sched_busy_hyst_enable_cpus;
+static unsigned int sysctl_sched_capacity_margin_up;
+static unsigned int sysctl_sched_capacity_margin_down;
+static unsigned int sysctl_walt_rtg_cfs_boost_prio;
+static unsigned int sysctl_walt_low_latency_task_threshold;
 static unsigned int sysctl_sched_busy_hyst;
-static unsigned int sysctl_sched_group_upmigrate_pct;
-static unsigned int sysctl_sched_group_downmigrate_pct;
 static unsigned int sysctl_sched_ravg_window_nr_ticks;
 #endif /* CONFIG_PELT_COMPATIBILITY_LAYER */
 

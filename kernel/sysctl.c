@@ -157,6 +157,15 @@ static int __maybe_unused two_hundred_million = 200000000;
 static unsigned int ns_per_sec = NSEC_PER_SEC;
 static unsigned int __read_mostly sysctl_sched_group_upmigrate_pct = 100;
 static unsigned int __read_mostly sysctl_sched_group_downmigrate_pct = 95;
+static unsigned int __read_mostly min_cfs_boost_prio = 0;
+static unsigned int __read_mostly max_cfs_boost_prio = 9999;
+
+int sched_updown_migrate_handler(struct ctl_table *table, int write,
+				void __user *buffer, size_t *lenp,
+				loff_t *ppos)
+{
+	return proc_douintvec(table, write, buffer, lenp, ppos);
+}
 #endif /* CONFIG_PELT_COMPATIBILITY_LAYER */
 #ifdef CONFIG_SCHED_WALT
 const int sched_user_hint_max = 1000;
@@ -444,6 +453,20 @@ static struct ctl_table kern_table[] = {
 		.extra2		= &four,
 	},
 	{
+		.procname	= "sched_upmigrate",
+		.data		= &sysctl_sched_capacity_margin_up,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= sched_updown_migrate_handler,
+	},
+	{
+		.procname	= "sched_downmigrate",
+		.data		= &sysctl_sched_capacity_margin_down,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler	= sched_updown_migrate_handler,
+	},
+	{
 		.procname	= "sched_busy_hysteresis_enable_cpus",
 		.data		= &sysctl_sched_busy_hyst_enable_cpus,
 		.maxlen		= sizeof(unsigned int),
@@ -477,6 +500,24 @@ static struct ctl_table kern_table[] = {
 		.proc_handler	= proc_dointvec_minmax,
 		.extra1		= &zero,
 		.extra2		= &sysctl_sched_group_upmigrate_pct,
+	},
+	{
+		.procname	= "walt_rtg_cfs_boost_prio",
+		.data		= &sysctl_walt_rtg_cfs_boost_prio,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler   = proc_dointvec_minmax,
+		.extra1		= &min_cfs_boost_prio,
+		.extra2		= &max_cfs_boost_prio,
+	},
+	{
+		.procname	= "walt_low_latency_task_threshold",
+		.data		= &sysctl_walt_low_latency_task_threshold,
+		.maxlen		= sizeof(unsigned int),
+		.mode		= 0644,
+		.proc_handler   = proc_dointvec_minmax,
+		.extra1		= &zero,
+		.extra2		= &one_thousand,
 	},
 	{
 		.procname	= "sched_ravg_window_nr_ticks",
