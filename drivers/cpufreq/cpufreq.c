@@ -729,6 +729,10 @@ static ssize_t store_##file_name					\
 	if (ret != 1)							\
 		return -EINVAL;						\
 									\
+	if (task_controls_frequencies(current) &&			\
+		&policy->object == &policy->max)			\
+		return count;						\
+									\
 	temp = new_policy.object;					\
 	ret = cpufreq_set_policy(policy, &new_policy);		\
 	if (!ret)							\
