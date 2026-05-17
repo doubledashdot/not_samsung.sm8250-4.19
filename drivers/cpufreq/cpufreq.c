@@ -33,6 +33,7 @@
 #include <linux/sched/topology.h>
 #include <linux/sched/sysctl.h>
 #include <trace/events/power.h>
+#include <linux/binfmts.h>
 
 static LIST_HEAD(cpufreq_policy_list);
 
@@ -718,8 +719,9 @@ static ssize_t store_##file_name					\
 	int ret, temp;							\
 	struct cpufreq_policy new_policy;				\
 									\
-	if (&policy->object == &policy->min)				\
-		return count;						\
+	if (task_controls_frequencies(current) &&					\
+ 		&policy->object == &policy->min)			\
+ 		return count;						\
 									\
 	memcpy(&new_policy, policy, sizeof(*policy));			\
 	new_policy.min = policy->user_policy.min;			\
