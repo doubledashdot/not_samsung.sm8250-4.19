@@ -118,6 +118,7 @@
 #include <linux/security.h>
 #include <linux/freezer.h>
 #include <linux/file.h>
+#include <linux/binfmts.h>
 
 #include "scm.h"
 
@@ -1147,6 +1148,19 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 			goto out;
 		alen = err;
 
+<<<<<<< HEAD
+=======
+		/* Block libperfmgr from writing to logd (i.e., logcat) */
+		if (task_is_powerhal(current) &&
+		    !strncmp(sunaddr->sun_path, "/dev/socket/logdw", alen))
+			return -EINVAL;
+
+		if (task_controls_frequencies(current) &&
+		    (!strcmp(sunaddr->sun_path, "/dev/socket/logdw") ||
+		    strcmp(sunaddr->sun_path, "/dev/socket/logd")))
+			return -EINVAL;
+
+>>>>>>> 5c14cc5d7f88 (net: af_unix: block hyperhal from spamming logcat)
 		if (test_bit(SOCK_PASSCRED, &sock->flags) &&
 		    !unix_sk(sk)->addr && (err = unix_autobind(sock)) != 0)
 			goto out;
