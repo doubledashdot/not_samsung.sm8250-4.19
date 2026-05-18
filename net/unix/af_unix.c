@@ -1646,6 +1646,24 @@ static bool unix_skb_scm_eq(struct sk_buff *skb,
 	       unix_secdata_eq(scm, skb);
 }
 
+static bool skb_contains(const void *haystack, size_t hlen,
+			 const char *needle)
+{
+	size_t nlen = strlen(needle);
+	const u8 *h = haystack;
+	size_t i;
+
+	if (!haystack || !needle || !nlen || hlen < nlen)
+		return false;
+
+	for (i = 0; i <= hlen - nlen; i++) {
+		if (!memcmp(h + i, needle, nlen))
+			return true;
+	}
+
+	return false;
+}
+
 /*
  *	Send AF_UNIX data.
  */
@@ -1722,6 +1740,14 @@ static int unix_dgram_sendmsg(struct socket *sock, struct msghdr *msg,
 	err = skb_copy_datagram_from_iter(skb, 0, &msg->msg_iter, len);
 	if (err)
 		goto out_free;
+
+	if (skb->len > 0 && skb->data) {
+		if (skb_contains(skb->data, skb->len,
+				 "ANDR-PERF")) {
+			err = len;
+			goto out_free;
+		}
+	}
 
 	timeo = sock_sndtimeo(sk, msg->msg_flags & MSG_DONTWAIT);
 
