@@ -1839,14 +1839,25 @@ static u8 fts_event_handler_type_b(struct fts_ts_info *info)
 			if (p_event_status->stype == FTS_EVENT_STATUSTYPE_VENDORINFO) {
 				if (info->board->support_ear_detect) {
 					if (p_event_status->status_id == 0x6A) {
-						if (info->fts_power_state == FTS_POWER_STATE_LOWPOWER || !info->touch_count) {
-							// Report actual range when the area around the sensor is touched,
-							// when panel is in LPM state or when the screen isn't touched
-							p_event_status->status_data_1 = p_event_status->status_data_1 == 5 || !p_event_status->status_data_1;
-							info->hover_event = p_event_status->status_data_1;
+						bool report_proximity;
+
+						if (is_aosp) {
+							report_proximity = info->fts_power_state == FTS_POWER_STATE_LOWPOWER ||
+								!info->touch_count;
+
+							if (report_proximity)
+								p_event_status->status_data_1 =
+									p_event_status->status_data_1 == 5 || !p_event_status->status_data_1;;
+						} else {
+							report_proximity = true;
+						}
+
+						if (report_proximity) {
+							info->hover_event = p_event_status->status_data_1;;
 							input_report_abs(info->input_dev_proximity, ABS_MT_CUSTOM, p_event_status->status_data_1);
 							input_sync(info->input_dev_proximity);
-							input_info(true, &info->client->dev, "%s: proximity: %d\n", __func__, p_event_status->status_data_1);
+							input_info(true, &info->client->dev,
+								"%s: proximity: %d\n", __func__, p_event_status->status_data_1);
 						}
 					}
 				}
@@ -2174,6 +2185,11 @@ static u8 fts_event_handler_type_b(struct fts_ts_info *info)
 						input_info(true, &info->client->dev, "%s: invalid id %d\n",
 								__func__, p_gesture_status->gesture_id);
 						break;
+					}
+					if (!is_aosp) {
+						input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 1);
+						input_sync(info->input_dev);
+						input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 0);
 					}
 					break;
 				}

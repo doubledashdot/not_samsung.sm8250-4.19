@@ -26,6 +26,8 @@
 #include <linux/input/sec_secure_touch.h>
 #endif
 
+#include <linux/rom_notifier.h>
+
 #ifdef CONFIG_INPUT_TOUCHSCREEN_TCLMV2
 #define TCLM_CONCEPT
 #endif

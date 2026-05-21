@@ -7,6 +7,7 @@
 #include <linux/vmalloc.h>
 #include <linux/proc_fs.h>
 #include <linux/power_supply.h>
+#include <linux/rom_notifier.h>
 
 #define TSP_TYPE_BUILTIN_FW		0
 #define TSP_TYPE_EXTERNAL_FW		1
