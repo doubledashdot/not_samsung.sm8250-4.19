@@ -1317,7 +1317,7 @@ static int ntfs_mft_bitmap_extend_allocation_nolock(ntfs_volume *vol)
 	read_unlock_irqrestore(&mftbmp_ni->size_lock, flags);
 	rl = ntfs_attr_find_vcn_nolock(mftbmp_ni,
 			(ll - 1) >> vol->cluster_size_bits, NULL);
-	if (unlikely(IS_ERR(rl) || !rl->length || rl->lcn < 0)) {
+	if (IS_ERR(rl) || !rl->length || rl->lcn < 0) {
 		up_write(&mftbmp_ni->runlist.lock);
 		ntfs_error(vol->sb, "Failed to determine last allocated "
 				"cluster of mft bitmap attribute.");
@@ -1748,7 +1748,7 @@ static int ntfs_mft_data_extend_allocation_nolock(ntfs_volume *vol)
 	read_unlock_irqrestore(&mft_ni->size_lock, flags);
 	rl = ntfs_attr_find_vcn_nolock(mft_ni,
 			(ll - 1) >> vol->cluster_size_bits, NULL);
-	if (unlikely(IS_ERR(rl) || !rl->length || rl->lcn < 0)) {
+	if (IS_ERR(rl) || !rl->length || rl->lcn < 0) {
 		up_write(&mft_ni->runlist.lock);
 		ntfs_error(vol->sb, "Failed to determine last allocated "
 				"cluster of mft data attribute.");
