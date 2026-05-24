@@ -224,7 +224,7 @@ static void __bpf_tramp_image_put_rcu_tasks(struct rcu_head *rcu)
 
 	im = container_of(rcu, struct bpf_tramp_image, rcu);
 	if (im->ip_after_call)
-		/* the case of fmod_ret/fexit trampoline and CONFIG_PREEMPTION=y */
+		/* the case of fmod_ret/fexit trampoline and CONFIG_PREEMPT=y */
 		percpu_ref_kill(&im->pcref);
 	else
 		/* the case of fentry trampoline */
@@ -263,7 +263,7 @@ static void bpf_tramp_image_put(struct bpf_tramp_image *im)
 		int err = bpf_arch_text_poke(im->ip_after_call, BPF_MOD_JUMP,
 					     NULL, im->ip_epilogue);
 		WARN_ON(err);
-		if (IS_ENABLED(CONFIG_PREEMPTION))
+		if (IS_ENABLED(CONFIG_PREEMPT))
 			call_rcu_tasks(&im->rcu, __bpf_tramp_image_put_rcu_tasks);
 		else
 			percpu_ref_kill(&im->pcref);
