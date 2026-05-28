@@ -1177,14 +1177,6 @@ static inline void ufshcd_remove_non_printable(char *val)
 		*val = ' ';
 }
 
-static void ufshcd_add_cmd_upiu_trace(struct ufs_hba *hba, unsigned int tag,
-		const char *str)
-{
-	struct utp_upiu_req *rq = hba->lrb[tag].ucd_req_ptr;
-
-	trace_ufshcd_upiu(dev_name(hba->dev), str, &rq->header, &rq->sc.cdb);
-}
-
 static void ufshcd_add_query_upiu_trace(struct ufs_hba *hba, unsigned int tag,
 		const char *str)
 {
@@ -4581,7 +4573,6 @@ out:
 		add_lrbp->cmd = NULL;
 		clear_bit_unlock(add_tag, &hba->lrb_in_use);
                 ufshcd_release_all(hba);
-		ufshcd_vops_pm_qos_req_end(hba, pre_cmd->request, true);
 		ufsf_hpb_end_pre_req(&hba->ufsf, pre_cmd->request);
 	}
 #endif
