@@ -302,8 +302,6 @@ static void mhi_netdev_queue(struct mhi_netdev *mhi_netdev,
 	*  Need to find buffer in recycle_pool even if it is delayed.
 	*/ 
 	max_peek = 20;
-	if (jiffies < (unsigned long)(atomic64_read(&last_oom_jiffies) + (10 * HZ))) 
-		max_peek = 2500;
 #endif
 
 	/* try going thru reclaim pool first */
