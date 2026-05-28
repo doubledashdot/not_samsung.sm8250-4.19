@@ -84,9 +84,6 @@ int __init summary_init_coreinfo(struct sec_debug_summary_data_apss *secdbg_apss
 	pr_info("coreinfo_data=0x%llx\n", secdbg_apss->coreinfo.coreinfo_data);
 
 	SUMMARY_COREINFO_SYMBOL(runqueues);
-	SUMMARY_COREINFO_STRUCT_SIZE(rq);
-	SUMMARY_COREINFO_OFFSET(rq, clock);
-	SUMMARY_COREINFO_OFFSET(rq, nr_running);
 
 	SUMMARY_COREINFO_OFFSET(task_struct, prio);
 
