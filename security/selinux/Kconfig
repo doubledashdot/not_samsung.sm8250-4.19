@@ -60,6 +60,13 @@ config SECURITY_SELINUX_DEVELOP
 	  permissive mode (if permitted by the policy) via
 	  /sys/fs/selinux/enforce.
 
+config SECURITY_SELINUX_PERMISSIVE
+	bool "SELinux permissive"
+	depends on SECURITY_SELINUX
+	default n
+	help
+	  This option switches SELinux to permissive mode
+
 config SECURITY_SELINUX_AVC_STATS
 	bool "NSA SELinux AVC Statistics"
 	depends on SECURITY_SELINUX
