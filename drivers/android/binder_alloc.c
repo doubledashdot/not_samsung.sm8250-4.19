@@ -249,10 +249,10 @@ static int binder_install_single_page(struct binder_alloc *alloc,
 		return -ESRCH;
 
 	/*
-	 * Protected with mmap_sem in write mode as multiple tasks
+	 * Protected with mmap_lock in write mode as multiple tasks
 	 * might race to install the same page.
 	 */
-	down_write(&alloc->vma_vm_mm->mmap_sem);
+	down_write(&alloc->vma_vm_mm->mmap_lock);
 	if (binder_get_installed_page(lru_page))
 		goto out;
 
@@ -281,7 +281,7 @@ static int binder_install_single_page(struct binder_alloc *alloc,
 	/* Mark page installation complete and safe to use */
 	binder_set_installed_page(lru_page, page);
 out:
-	up_write(&alloc->vma_vm_mm->mmap_sem);
+	up_write(&alloc->vma_vm_mm->mmap_lock);
 	mmput_async(alloc->vma_vm_mm);
 	return ret;
 }
@@ -1105,7 +1105,7 @@ enum lru_status binder_alloc_free_page(struct list_head *item,
 
 	if (!mmget_not_zero(mm))
 		goto err_mmget;
-	if (!down_read_trylock(&mm->mmap_sem))
+	if (!down_read_trylock(&mm->mmap_lock))
 		goto err_mmap_read_lock_failed;
 	if (!spin_trylock(&alloc->lock))
 		goto err_get_alloc_lock_failed;
@@ -1138,7 +1138,7 @@ enum lru_status binder_alloc_free_page(struct list_head *item,
 		trace_binder_unmap_user_end(alloc, index);
 	}
 
-	up_read(&mm->mmap_sem);
+	up_read(&mm->mmap_lock);
 	mmput_async(mm);
 	__free_page(page_to_free);
 
@@ -1149,7 +1149,7 @@ err_invalid_vma:
 err_page_already_freed:
 	spin_unlock(&alloc->lock);
 err_get_alloc_lock_failed:
-	up_read(&mm->mmap_sem);
+	up_read(&mm->mmap_lock);
 err_mmap_read_lock_failed:
 	mmput_async(mm);
 err_mmget:
