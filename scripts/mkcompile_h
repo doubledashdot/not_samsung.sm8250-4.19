@@ -7,7 +7,7 @@ SMP=$3
 PREEMPT=$4
 CC_VERSION="$5"
 LD=$6
-MESSAGE="(It's about a girl in a box.)"
+MESSAGE="(not_kernel: It's about a girl in a box.)"
 
 vecho() { [ "${quiet}" = "silent_" ] || echo "$@" ; }
 
