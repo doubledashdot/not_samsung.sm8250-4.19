@@ -660,7 +660,9 @@ static void __init sec_debug_summary_external_init(void)
 	summary_set_lpm_info_runqueues();
 
 	sec_debug_summary_set_klog_info(secdbg_apss);
+#ifdef CONFIG_QCOM_MEMORY_DUMP_V2
 	sec_debug_summary_set_msm_memdump_info(secdbg_apss);
+#endif
 #if IS_ENABLED(CONFIG_QCOM_RTB)
 	sec_debug_summary_set_rtb_info(secdbg_apss);
 #endif
@@ -759,8 +761,9 @@ static int _sec_debug_summary_init(void)
 	strlcpy(secdbg_apss->state, "Init", sizeof(secdbg_apss->state));
 	secdbg_apss->nr_cpus = num_present_cpus();
 	secdbg_apss->dump_sink_paddr = get_pa_dump_sink();
+#ifdef CONFIG_QCOM_MEMORY_DUMP_V2
 	secdbg_apss->tz_core_dump = get_wdog_regsave_paddr();
-
+#endif
 	summary_init_debug_arch_desc();
 	summary_init_infomon();
 	summary_init_varmon();
