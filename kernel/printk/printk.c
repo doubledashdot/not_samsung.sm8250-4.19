@@ -901,6 +901,7 @@ static ssize_t devkmsg_write(struct kiocb *iocb, struct iov_iter *from)
 			line = endp;
 
 			if (strstr(line, "healthd") ||
+			    strstr(line, "cacert") ||
 				strncmp(line, "logd: Skipping", sizeof("logd: Skipping"))) {
 				return ret;
 			}
