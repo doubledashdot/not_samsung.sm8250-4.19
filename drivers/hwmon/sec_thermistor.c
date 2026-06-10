@@ -170,7 +170,7 @@ static int convert_adc_to_temper(struct sec_therm_info *info, unsigned int adc)
 		(info->pdata->adc_table[low].adc -
 			info->pdata->adc_table[high].adc);
 
-	return temp;
+	return temp / 2;
 }
 
 static ssize_t sec_therm_show_temperature(struct device *dev,
@@ -252,7 +252,7 @@ int sec_therm_get_ap_temperature(void)
 	else
 		return adc;
 
-	return temp;
+	return temp / 2;
 }
 
 static int sec_therm_probe(struct platform_device *pdev)
