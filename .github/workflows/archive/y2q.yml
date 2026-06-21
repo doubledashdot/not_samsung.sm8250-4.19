@@ -1,0 +1,19 @@
+name: Build for y2q
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-y2q:
+    uses: ./.github/workflows/build.yml
+    with:
+      device: y2q
+      device_name: Galaxy S20 Plus 5G
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

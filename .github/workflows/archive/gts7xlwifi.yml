@@ -1,0 +1,19 @@
+name: Build for gts7xlwifi
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-gts7xlwifi:
+    uses: ./.github/workflows/build.yml
+    with:
+      device: gts7xlwifi
+      device_name: Galaxy Tab S7 Plus
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
