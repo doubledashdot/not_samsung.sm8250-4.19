@@ -1,0 +1,19 @@
+name: Build for c2q
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-c2q:
+    uses: ./.github/workflows/build.yml
+    with:
+      device: c2q
+      device_name: Galaxy Note 20 Ultra
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

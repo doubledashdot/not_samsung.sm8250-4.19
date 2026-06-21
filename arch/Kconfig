@@ -452,7 +452,7 @@ config STACKPROTECTOR
 	bool "Stack Protector buffer overflow detection"
 	depends on HAVE_STACKPROTECTOR
 	depends on $(cc-option,-fstack-protector)
-	default y
+	default n
 	help
 	  This option turns on the "stack-protector" GCC feature. This
 	  feature puts, at the beginning of functions, a canary value on
@@ -476,7 +476,7 @@ config STACKPROTECTOR_STRONG
 	bool "Strong Stack Protector"
 	depends on STACKPROTECTOR
 	depends on $(cc-option,-fstack-protector-strong)
-	default y
+	default n
 	help
 	  Functions will have the stack-protector canary logic added in any
 	  of the following conditions:
@@ -495,7 +495,7 @@ config STACKPROTECTOR_STRONG
 	  size by about 2%.
 
 config LTO
-	def_bool n
+	def_bool y
 
 config ARCH_SUPPORTS_LTO_CLANG
 	bool
@@ -512,26 +512,15 @@ config ARCH_SUPPORTS_THINLTO
 
 config THINLTO
 	bool "Use clang ThinLTO (EXPERIMENTAL)"
-	depends on LTO_CLANG && ARCH_SUPPORTS_THINLTO
 	default y
+	depends on LTO_CLANG && ARCH_SUPPORTS_THINLTO
 	help
 	  Use ThinLTO to speed up Link Time Optimization.
-
-choice
-	prompt "Link-Time Optimization (LTO) (EXPERIMENTAL)"
-	default LTO_NONE
-	help
-	  This option turns on Link-Time Optimization (LTO).
-
-config LTO_NONE
-	bool "None"
 
 config LTO_CLANG
 	bool "Use clang Link Time Optimization (LTO) (EXPERIMENTAL)"
 	depends on ARCH_SUPPORTS_LTO_CLANG
-	depends on !FTRACE_MCOUNT_RECORD || HAVE_C_RECORDMCOUNT
-	depends on !KASAN
-	depends on CC_IS_CLANG && LD_IS_LLD
+	default y
 	select LTO
 	help
           This option enables clang's Link Time Optimization (LTO), which allows
@@ -540,16 +529,14 @@ config LTO_CLANG
           files, and the actual compilation from IR occurs at the LTO link step,
           which may take several minutes.
 
-          If you select this option, you must compile the kernel with clang and
-	  LLD.
-
-endchoice
+          You must compile the kernel with clang and LLD.
 
 config CFI
 	bool
 
 config CFI_PERMISSIVE
 	bool "Use CFI in permissive mode"
+	default n
 	depends on CFI
 	help
 	  When selected, Control Flow Integrity (CFI) violations result in a
@@ -558,6 +545,7 @@ config CFI_PERMISSIVE
 
 config CFI_CLANG
 	bool "Use clang Control Flow Integrity (CFI) (EXPERIMENTAL)"
+	default n
 	depends on LTO_CLANG
 	depends on KALLSYMS
 	select CFI
@@ -567,7 +555,7 @@ config CFI_CLANG
 
 config CFI_CLANG_SHADOW
 	bool "Use CFI shadow to speed up cross-module checks"
-	default y
+	default n
 	depends on CFI_CLANG
 	help
 	  If you select this option, the kernel builds a fast look-up table of
@@ -582,6 +570,7 @@ config ARCH_SUPPORTS_SHADOW_CALL_STACK
 
 config SHADOW_CALL_STACK
 	bool "Clang Shadow Call Stack"
+	default n
 	depends on ARCH_SUPPORTS_SHADOW_CALL_STACK
 	help
 	  This option enables Clang's Shadow Call Stack, which uses a
@@ -1023,9 +1012,10 @@ config ARCH_HAS_RELR
 	bool
 
 config RELR
-	bool "Use RELR relocation packing"
-	depends on ARCH_HAS_RELR && TOOLS_SUPPORT_RELR
+	bool
 	default y
+	depends on ARCH_HAS_RELR && TOOLS_SUPPORT_RELR
+	select LTO_CLANG #ok
 	help
 	  Store the kernel's dynamic relocations in the RELR relocation packing
 	  format. Requires a compatible linker (LLD supports this feature), as
@@ -1043,6 +1033,7 @@ config ARCH_HAS_NONLEAF_PMD_YOUNG
 
 config LLVM_POLLY
 	bool "Enable LLVM's polyhedral loop optimizer (Polly)"
+	default y
 	help
 	  This option enables LLVM's polyhedral loop optimizer known as Polly.
 	  Polly is able to optimize various loops throughout the kernel for

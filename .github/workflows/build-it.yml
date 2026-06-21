@@ -1,0 +1,90 @@
+name: IT builder
+
+on:
+  workflow_call:
+    inputs:
+      device:
+        type: string
+        required: true
+      device_name:
+        type: string
+        required: true
+    secrets:
+      TELEGRAM_BOT_TOKEN:
+        required: true
+      TELEGRAM_CHAT_ID2:
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-kernel:
+    runs-on: ubuntu-latest
+
+    env:
+      DEVICE: ${{ inputs.device }}
+      DEVICE_NAME: ${{ inputs.device_name }}
+
+    steps:
+      - name: Check Out
+        uses: actions/checkout@v3
+
+      - name: Set Timezone
+        uses: szenius/set-timezone@v1.2
+        with:
+          timezoneLinux: "America/Sao_Paulo"
+
+      - name: Setting up the environment
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+
+      - name: Set Build Start Time
+        run: echo "START_TIME=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Run build script
+        run: |
+          export DEVICE=${{ env.DEVICE }}
+          echo ":not/IT" > localversion-not
+          ./build.sh
+
+      - name: Set Build End Time
+        run: echo "END_TIME=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Calculate Build Duration
+        run: |
+          duration=$((END_TIME - START_TIME))
+          minutes=$((duration / 60))
+          seconds=$((duration % 60))
+          echo "BUILD_DURATION=${minutes}m ${seconds}s" >> $GITHUB_ENV
+
+      - name: Upload to Telegram
+        run: |
+          gitsha1=$(git rev-parse --short HEAD)
+          zip_file=$(ls not-*.zip 2>/dev/null | head -n 1)
+          if [ -z "$zip_file" ]; then
+            echo "No zip found!"
+            exit 1
+          fi
+          DEVICE_NAME_ESCAPED=$(echo "$DEVICE_NAME" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
+          DEVICE_ESCAPED=$(echo "$DEVICE" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
+          printf "| Localversion: `cat out/include/config/kernel.release`
+           | Build Date: `date +'%d %B %Y'`
+           | Build commit hash: $gitsha1
+           | KernelSU: yes
+           | SELinux: Enforcing" >> buildDetails.txt
+          buildDetails="`cat buildDetails.txt`"
+          msg="*not\\-kernel* IT build for the *${DEVICE_NAME_ESCAPED} \\(${DEVICE_ESCAPED}\\)*
+          * *
+          \`\`\`
+          $buildDetails
+          \`\`\`
+          *@not\\_kernel \\| @sKernelSU*
+          * * "
+          file="$zip_file"
+          curl -s -F document=@$file "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+          -F chat_id="${{ secrets.TELEGRAM_CHAT_ID2 }}" \
+          -F "disable_web_page_preview=true" \
+          -F "parse_mode=markdownv2" \
+          -F caption="$msg"

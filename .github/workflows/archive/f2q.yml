@@ -1,0 +1,16 @@
+name: Prepare for f2q
+
+on:
+#  push:
+#    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-f2q:
+    uses: ./.github/workflows/build.yml
+    with:
+      device: f2q
+      device_name: Galaxy Z Fold2 5G
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}

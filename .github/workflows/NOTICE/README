@@ -1,0 +1,31 @@
+NOTICE:
+
+not_kernel ONLY supports the following device:
+
+r8q - Galaxy S20 FE (Snapdragon)
+
+- Unsupported:
+bloomxq - Galaxy Z Flip 5G
+f2q - Galaxy Z Fold2 5G
+
+* The above foldables are weird and it seems like the dtsi's are incomplete or something like that.
+
+- Unsupported:
+x1q - Galaxy S20 5G
+y2q - Galaxy S20+ 5G
+z3q - Galaxy S20 Ultra
+c1q - Galaxy Note 20
+c2q - Galaxy Note 20 Ultra
+
+* The devices above uses broadcom wifi which is currently broken in LineageOS source.
+
+- Unsupported:
+gts7l - Galaxy Tab S7 (LTE)
+gts7lwifi - Galaxy Tab S7 (WIFI)
+gts7xl - Galaxy Tab S7+ (LTE)
+gts7xlwifi - Galaxy Tab S7+ (WIFI)
+
+* The kernel is 100% functional for the Tab's, however i don't own any of them.
+
+To build with workflows:
+Just call the codename.yml and it will build the kernel for that phone/tablet.

@@ -1,0 +1,20 @@
+name: IT build for r8q
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-r8q:
+    uses: ./.github/workflows/build-it.yml
+    with:
+      device: r8q
+      device_name: Galaxy S20 FE
+    secrets:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID2: ${{ secrets.TELEGRAM_CHAT_ID2 }}
