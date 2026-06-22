@@ -68,12 +68,13 @@ jobs:
           fi
           DEVICE_NAME_ESCAPED=$(echo "$DEVICE_NAME" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
           DEVICE_ESCAPED=$(echo "$DEVICE" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
-          printf "| Localversion: cat out/include/config/kernel.release
-           | Clang version: ClangBuiltLinux LLVM 22.1.5
-           | Build Date: $(date +\'%d %b %Y\')
-           | Build commit hash: $gitsha1
-           | KernelSU version: v3.2.4
-           | SELinux: Enforcing" >> buildDetails.txt
+          BUILD_DATE=$(date +'%d %b %Y')
+printf "| Localversion: $(cat out/include/config/kernel.release)
+| Clang version: ClangBuiltLinux LLVM 22.1.5
+| Build Date: $BUILD_DATE
+| Build commit hash: $gitsha1
+| KernelSU version: v3.2.4
+| SELinux: Enforcing" >> buildDetails.txt
           buildDetails="cat buildDetails.txt"
           msg="*LineageKSU* build for the *${DEVICE_NAME_ESCAPED} \\(${DEVICE_ESCAPED}\\)*
           * *
