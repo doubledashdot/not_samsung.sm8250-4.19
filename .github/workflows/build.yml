@@ -61,7 +61,7 @@ jobs:
       - name: Upload to Telegram
         run: |
           gitsha1=$(git rev-parse --short HEAD)
-          zip_file=$(ls not-*.zip 2>/dev/null | head -n 1)
+          zip_file=$(ls LineageKSU-*.zip 2>/dev/null | head -n 1)
           if [ -z "$zip_file" ]; then
             echo "No zip found!"
             exit 1
@@ -69,12 +69,13 @@ jobs:
           DEVICE_NAME_ESCAPED=$(echo "$DEVICE_NAME" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
           DEVICE_ESCAPED=$(echo "$DEVICE" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
           printf "| Localversion: `cat out/include/config/kernel.release`
+           | Clang version: ClangBuiltLinux LLVM 22.1.5
            | Build Date: `date +'%d %B %Y'`
            | Build commit hash: $gitsha1
-           | KernelSU: yes
+           | KernelSU version: v3.2.4
            | SELinux: Enforcing" >> buildDetails.txt
           buildDetails="`cat buildDetails.txt`"
-          msg="*not\\-kernel* build for the *${DEVICE_NAME_ESCAPED} \\(${DEVICE_ESCAPED}\\)*
+          msg="*LineageKSU* build for the *${DEVICE_NAME_ESCAPED} \\(${DEVICE_ESCAPED}\\)*
           * *
           \`\`\`
           $buildDetails
@@ -89,7 +90,7 @@ jobs:
 
       - name: Set ZIP File Path
         run: |
-         zip=$(ls not-CI-*.zip 2>/dev/null | head -n1)
+         zip=$(ls LineageKSU-*.zip 2>/dev/null | head -n1)
          if [ -z "$zip" ]; then
            echo "❌ No ZIP found!"
            exit 1
@@ -124,7 +125,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
-          name: not_kernel ${{ env.KERNEL_VERSION }} for ${{ env.DEVICE_NAME }}
+          name: LineageKSU ${{ env.KERNEL_VERSION }} for ${{ env.DEVICE_NAME }}
           files: ${{ env.zip_file }}
           body: |
              Clang version: ${{ env.CLANG_VERSION }}
