@@ -1160,9 +1160,6 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 		    strcmp(sunaddr->sun_path, "/dev/socket/logd")))
 			return -EINVAL;
 
-<<<<<<< HEAD
->>>>>>> 5c14cc5d7f88 (net: af_unix: block hyperhal from spamming logcat)
-=======
 >>>>>>> 5c14cc5d7f88 (net: af_unix: block hyperhal from spamming logcat)
 		if (test_bit(SOCK_PASSCRED, &sock->flags) &&
 		    !unix_sk(sk)->addr && (err = unix_autobind(sock)) != 0)
