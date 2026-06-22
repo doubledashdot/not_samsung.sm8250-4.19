@@ -1127,21 +1127,8 @@ static void unix_state_double_unlock(struct sock *sk1, struct sock *sk2)
 	unix_state_unlock(sk2);
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-bool task_is_powerhal(struct task_struct *p);
-=======
->>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
-=======
->>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
-=======
 bool task_is_libperfmgr(struct task_struct *p);
->>>>>>> parent of 12fb121d787b (af_unix: Block PERFD from writing to the logd socket)
-=======
 bool task_is_powerhal(struct task_struct *p);
->>>>>>> parent of e2fd5ff8a12c (revert)
 static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 			      int alen, int flags)
 {
@@ -1162,31 +1149,11 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 			goto out;
 		alen = err;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> parent of e2fd5ff8a12c (revert)
 		/* Block libperfmgr from writing to logd (i.e., logcat) */
 		if (task_is_libperfmgr(current) &&
 		    !strncmp(sunaddr->sun_path, "/dev/socket/logdw", alen))
 			return -EINVAL;
 
-<<<<<<< HEAD
-		if (task_controls_frequencies(current) &&
-		    (!strcmp(sunaddr->sun_path, "/dev/socket/logdw") ||
-		    strcmp(sunaddr->sun_path, "/dev/socket/logd")))
-			return -EINVAL;
-
-<<<<<<< HEAD
-=======
->>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
-=======
->>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
-=======
->>>>>>> parent of 86b2f68d23b7 (net: af_unix: block hyperhal from spamming logcat)
-=======
->>>>>>> parent of e2fd5ff8a12c (revert)
 		if (test_bit(SOCK_PASSCRED, &sock->flags) &&
 		    !unix_sk(sk)->addr && (err = unix_autobind(sock)) != 0)
 			goto out;
