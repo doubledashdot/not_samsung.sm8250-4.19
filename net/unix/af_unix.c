@@ -1128,7 +1128,10 @@ static void unix_state_double_unlock(struct sock *sk1, struct sock *sk2)
 	unix_state_unlock(sk2);
 }
 
+<<<<<<< HEAD
 bool task_is_powerhal(struct task_struct *p);
+=======
+>>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
 static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 			      int alen, int flags)
 {
@@ -1149,6 +1152,7 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 			goto out;
 		alen = err;
 
+<<<<<<< HEAD
 		/* Block libperfmgr from writing to logd (i.e., logcat) */
 		if (task_is_powerhal(current) &&
 		    !strncmp(sunaddr->sun_path, "/dev/socket/logdw", alen))
@@ -1159,6 +1163,8 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 		    strcmp(sunaddr->sun_path, "/dev/socket/logd")))
 			return -EINVAL;
 
+=======
+>>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
 		if (test_bit(SOCK_PASSCRED, &sock->flags) &&
 		    !unix_sk(sk)->addr && (err = unix_autobind(sock)) != 0)
 			goto out;
