@@ -1130,11 +1130,15 @@ static void unix_state_double_unlock(struct sock *sk1, struct sock *sk2)
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 bool task_is_powerhal(struct task_struct *p);
 =======
 >>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
 =======
 >>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
+=======
+bool task_is_libperfmgr(struct task_struct *p);
+>>>>>>> parent of 12fb121d787b (af_unix: Block PERFD from writing to the logd socket)
 static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 			      int alen, int flags)
 {
@@ -1158,7 +1162,7 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 <<<<<<< HEAD
 <<<<<<< HEAD
 		/* Block libperfmgr from writing to logd (i.e., logcat) */
-		if (task_is_powerhal(current) &&
+		if (task_is_libperfmgr(current) &&
 		    !strncmp(sunaddr->sun_path, "/dev/socket/logdw", alen))
 			return -EINVAL;
 
