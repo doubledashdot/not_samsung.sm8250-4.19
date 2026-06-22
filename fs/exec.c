@@ -77,6 +77,9 @@ int suid_dumpable = 0;
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of e2fd5ff8a12c (revert)
 =======
 #define LIBPERFMGR_BIN "/vendor/bin/hw/android.hardware.power-service.pixel-libperfmgr"
 #define SERVICEMANAGER_BIN "/system/bin/servicemanager"
@@ -110,10 +113,13 @@ void dead_special_task(void)
 }
 
 >>>>>>> ad9f869f66a3 (af_unix: Block libperfmgr from writing to the logd socket)
+<<<<<<< HEAD
 =======
 >>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
 =======
 >>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
+=======
+>>>>>>> parent of e2fd5ff8a12c (revert)
 static LIST_HEAD(formats);
 static DEFINE_RWLOCK(binfmt_lock);
 
@@ -1900,6 +1906,9 @@ static int __do_execve_file(int fd, struct filename *filename,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> parent of e2fd5ff8a12c (revert)
 =======
 	if (is_global_init(current->parent)) {
 		if (unlikely(!strcmp(filename->name, LIBPERFMGR_BIN))) {
@@ -1910,10 +1919,13 @@ static int __do_execve_file(int fd, struct filename *filename,
 	}
 
 >>>>>>> ad9f869f66a3 (af_unix: Block libperfmgr from writing to the logd socket)
+<<<<<<< HEAD
 =======
 >>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
 =======
 >>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
+=======
+>>>>>>> parent of e2fd5ff8a12c (revert)
 	/* execve succeeded */
 	current->fs->in_exec = 0;
 	current->in_execve = 0;
