@@ -118,7 +118,6 @@
 #include <linux/security.h>
 #include <linux/freezer.h>
 #include <linux/file.h>
-#include <linux/binfmts.h>
 
 #include "scm.h"
 
@@ -1166,6 +1165,7 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 		    !strncmp(sunaddr->sun_path, "/dev/socket/logdw", alen))
 			return -EINVAL;
 
+<<<<<<< HEAD
 		if (task_controls_frequencies(current) &&
 		    (!strcmp(sunaddr->sun_path, "/dev/socket/logdw") ||
 		    strcmp(sunaddr->sun_path, "/dev/socket/logd")))
@@ -1175,6 +1175,8 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 >>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
 =======
 >>>>>>> parent of a292494ada97 (block libperfmg from spamming logcat)
+=======
+>>>>>>> parent of 86b2f68d23b7 (net: af_unix: block hyperhal from spamming logcat)
 		if (test_bit(SOCK_PASSCRED, &sock->flags) &&
 		    !unix_sk(sk)->addr && (err = unix_autobind(sock)) != 0)
 			goto out;
