@@ -36,7 +36,7 @@
 
 
 #ifdef CONFIG_SEC_PM
-extern void *thermal_ipc_log;
+void *thermal_ipc_log = NULL;
 #endif
 
 enum {
