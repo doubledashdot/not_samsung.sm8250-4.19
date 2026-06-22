@@ -61,26 +61,24 @@ jobs:
       - name: Upload to Telegram
         run: |
           gitsha1=$(git rev-parse --short HEAD)
-          zip_file=$(ls LineageKSU-*.zip 2>/dev/null | head -n 1)
+          zip_file=$(ls not-*.zip 2>/dev/null | head -n 1)
           if [ -z "$zip_file" ]; then
             echo "No zip found!"
             exit 1
           fi
           DEVICE_NAME_ESCAPED=$(echo "$DEVICE_NAME" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
           DEVICE_ESCAPED=$(echo "$DEVICE" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
-          BUILD_DATE=$(date +'%d %b %Y')
-printf "| Localversion: $(cat out/include/config/kernel.release)
-| Clang version: ClangBuiltLinux LLVM 22.1.5
-| Build Date: $BUILD_DATE
-| Build commit hash: $gitsha1
-| KernelSU version: v3.2.4
-| SELinux: Enforcing" >> buildDetails.txt
-          buildDetails="cat buildDetails.txt"
-          msg="*LineageKSU* build for the *${DEVICE_NAME_ESCAPED} \\(${DEVICE_ESCAPED}\\)*
+          printf "| Localversion: `cat out/include/config/kernel.release`
+           | Build Date: `date +'%d %B %Y'`
+           | Build commit hash: $gitsha1
+           | KernelSU: yes
+           | SELinux: Enforcing" >> buildDetails.txt
+          buildDetails="`cat buildDetails.txt`"
+          msg="*not\\-kernel* build for the *${DEVICE_NAME_ESCAPED} \\(${DEVICE_ESCAPED}\\)*
           * *
-          \\\`
+          \`\`\`
           $buildDetails
-          \\\`
+          \`\`\`
           * * "
           file="$zip_file"
           curl -s -F document=@$file "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
@@ -88,3 +86,54 @@ printf "| Localversion: $(cat out/include/config/kernel.release)
           -F "disable_web_page_preview=true" \
           -F "parse_mode=markdownv2" \
           -F caption="$msg"
+
+      - name: Set ZIP File Path
+        run: |
+         zip=$(ls not-CI-*.zip 2>/dev/null | head -n1)
+         if [ -z "$zip" ]; then
+           echo "❌ No ZIP found!"
+           exit 1
+         fi
+         echo "zip_file=$zip" >> $GITHUB_ENV
+
+      - name: Set release tag
+        run: echo "RELEASE_TAG=${DEVICE}-$(date +'%Y%m%d')" >> $GITHUB_ENV
+
+      - name: Prepare Release Info
+        run: |
+          set -e
+          echo "KERNEL_VERSION=$(cat out/include/config/kernel.release)" >> $GITHUB_ENV
+          echo "BUILD_DATE=$(date +'%d %B %Y')" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "CLANG_VERSION=$(${{ github.workspace }}/tc/clang/bin/clang --version | head -n1)" >> $GITHUB_ENV
+          KSU_VERSION=$(grep -m1 'KSU_VERSION' -r ./KernelSU/kernel/Makefile | sed -E 's/.*KSU_VERSION=([0-9]+).*/\1/')
+          [ -z "$KSU_VERSION" ] && KSU_VERSION="Unknown"
+          echo "KSU_VERSION=$KSU_VERSION" >> $GITHUB_ENV
+          git -C KernelSU fetch --tags 2>/dev/null || true
+          KSU_VERSION_STR=$(git -C KernelSU describe --tags --always 2>/dev/null)
+          [ -z "$KSU_VERSION_STR" ] && KSU_VERSION_STR="Unknown"
+          echo "KSU_VERSION_STR=$KSU_VERSION_STR" >> $GITHUB_ENV
+          SUSFS_VERSION=$(grep -m1 'SUSFS_VERSION' ./include/linux/susfs.h 2>/dev/null | awk -F'"' '{print $2}')
+          [ -z "$SUSFS_VERSION" ] && SUSFS_VERSION="Unknown"
+          echo "SUSFS_VERSION=$SUSFS_VERSION" >> $GITHUB_ENV
+
+      - name: Debug ZIP
+        run: ls -lh
+
+      - name: Create Release and Upload ZIP
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: not_kernel ${{ env.KERNEL_VERSION }} for ${{ env.DEVICE_NAME }}
+          files: ${{ env.zip_file }}
+          body: |
+             Clang version: ${{ env.CLANG_VERSION }}
+             Build Date: ${{ env.BUILD_DATE }}
+             KernelSU version: ${{ env.KSU_VERSION }} / ${{ env.KSU_VERSION_STR }}
+             SusFS version: ${{ env.SUSFS_VERSION }}
+             SELinux: Enforcing
+             Commit: ${{ env.COMMIT_HASH }}
+             Build completed in: ${{ env.BUILD_DURATION }}
+              
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
