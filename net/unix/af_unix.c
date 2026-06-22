@@ -1161,9 +1161,6 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 			return -EINVAL;
 
 <<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 5c14cc5d7f88 (net: af_unix: block hyperhal from spamming logcat)
-=======
 >>>>>>> 5c14cc5d7f88 (net: af_unix: block hyperhal from spamming logcat)
 =======
 >>>>>>> 5c14cc5d7f88 (net: af_unix: block hyperhal from spamming logcat)
