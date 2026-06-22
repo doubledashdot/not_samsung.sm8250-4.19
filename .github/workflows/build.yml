@@ -70,7 +70,7 @@ jobs:
           DEVICE_ESCAPED=$(echo "$DEVICE" | sed 's/[][_*()~`>#+=|{}.!-]/\\&/g')
           printf "| Localversion: cat out/include/config/kernel.release
            | Clang version: ClangBuiltLinux LLVM 22.1.5
-           | Build Date: date +'%d %B %Y'
+           | Build Date: $(date +\'%d %b %Y\')
            | Build commit hash: $gitsha1
            | KernelSU version: v3.2.4
            | SELinux: Enforcing" >> buildDetails.txt
