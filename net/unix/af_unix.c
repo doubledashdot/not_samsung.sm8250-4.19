@@ -119,6 +119,7 @@
 #include <linux/freezer.h>
 #include <linux/file.h>
 #include <linux/binfmts.h>
+#include <linux/task_controls_frequencies.h>
 
 #include "scm.h"
 
