@@ -100,7 +100,7 @@
 			input_booster,type = <2>;	/* BOOSTER_DEVICE_TOUCH */
 
 			/* Time table */
-			input_booster,head_time = <100>;
+			input_booster,head_time = <200>;
 			input_booster,tail_time = <1000>;
 
 			/* Input Booster Resource Frequency */
@@ -108,7 +108,7 @@
 				compatible = "resource";
 				resource@1 {
 					resource,label = "CPU";
-					resource,value = <1401600 1401600>;
+					resource,value = <1804800 1804800>;
 				};
 
 				resource@2 {
@@ -141,7 +141,7 @@
 				compatible = "resource";
 				resource@1 {
 					resource,label = "CPU";
-					resource,value = <1977600 1401600>;
+					resource,value = <1977600 1804800>;
 				};
 
 				resource@2 {
