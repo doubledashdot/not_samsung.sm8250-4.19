@@ -118,6 +118,17 @@
 #include <linux/security.h>
 #include <linux/freezer.h>
 #include <linux/file.h>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+<<<<<<< HEAD
+#include <linux/binfmts.h>
+#include <linux/task_controls_frequencies.h>
+=======
+>>>>>>> parent of 7f37d00b8fe2 (fs/net: block powerhal, perfd, andr-perf and hyperhal from logcat)
+=======
+>>>>>>> parent of 7f37d00b8fe2 (fs/net: block powerhal, perfd, andr-perf and hyperhal from logcat)
+>>>>>>> 5688a8afc2b2 (333mhz ufs oc)
 
 #include "scm.h"
 
