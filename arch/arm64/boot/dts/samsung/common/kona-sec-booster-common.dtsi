@@ -100,15 +100,15 @@
 			input_booster,type = <2>;	/* BOOSTER_DEVICE_TOUCH */
 
 			/* Time table */
-			input_booster,head_time = <200>;
-			input_booster,tail_time = <250>;
+			input_booster,head_time = <100>;
+			input_booster,tail_time = <1000>;
 
 			/* Input Booster Resource Frequency */
 			inputbooster,resource {
 				compatible = "resource";
 				resource@1 {
 					resource,label = "CPU";
-					resource,value = <1190400 1075200>;
+					resource,value = <1401600 1401600>;
 				};
 
 				resource@2 {
@@ -134,7 +134,7 @@
 
 			/* Time table */
 			input_booster,head_time = <200>;
-			input_booster,tail_time = <500>;
+			input_booster,tail_time = <1000>;
 
 			/* Input Booster Resource Frequency */
 			inputbooster,resource {
@@ -156,7 +156,7 @@
 
 				resource@4 {
 					resource,label = "LPM";
-					resource,value = <0 0>;
+					resource,value = <5 5>;
 				};
 			};
 		};
