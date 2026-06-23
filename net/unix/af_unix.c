@@ -118,10 +118,7 @@
 #include <linux/security.h>
 #include <linux/freezer.h>
 #include <linux/file.h>
-<<<<<<< HEAD
 #include <linux/binfmts.h>
-=======
->>>>>>> parent of 7f37d00b8fe2 (fs/net: block powerhal, perfd, andr-perf and hyperhal from logcat)
 
 #include "scm.h"
 
@@ -947,7 +944,7 @@ static struct sock *unix_find_other(struct net *net,
 		if (err)
 			goto fail;
 		inode = d_backing_inode(path.dentry);
-		err = inode_permission(inode, MAY_WRITE);
+		err = path_permission(&path, MAY_WRITE);
 		if (err)
 			goto put_fail;
 
@@ -1131,7 +1128,6 @@ static void unix_state_double_unlock(struct sock *sk1, struct sock *sk2)
 	unix_state_unlock(sk2);
 }
 
-bool task_is_libperfmgr(struct task_struct *p);
 bool task_is_powerhal(struct task_struct *p);
 static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 			      int alen, int flags)
@@ -1154,8 +1150,13 @@ static int unix_dgram_connect(struct socket *sock, struct sockaddr *addr,
 		alen = err;
 
 		/* Block libperfmgr from writing to logd (i.e., logcat) */
-		if (task_is_libperfmgr(current) &&
+		if (task_is_powerhal(current) &&
 		    !strncmp(sunaddr->sun_path, "/dev/socket/logdw", alen))
+			return -EINVAL;
+
+		if (task_controls_frequencies(current) &&
+		    (!strcmp(sunaddr->sun_path, "/dev/socket/logdw") ||
+		    strcmp(sunaddr->sun_path, "/dev/socket/logd")))
 			return -EINVAL;
 
 		if (test_bit(SOCK_PASSCRED, &sock->flags) &&
@@ -1651,6 +1652,24 @@ static bool unix_skb_scm_eq(struct sk_buff *skb,
 	       unix_secdata_eq(scm, skb);
 }
 
+static bool skb_contains(const void *haystack, size_t hlen,
+			 const char *needle)
+{
+	size_t nlen = strlen(needle);
+	const u8 *h = haystack;
+	size_t i;
+
+	if (!haystack || !needle || !nlen || hlen < nlen)
+		return false;
+
+	for (i = 0; i <= hlen - nlen; i++) {
+		if (!memcmp(h + i, needle, nlen))
+			return true;
+	}
+
+	return false;
+}
+
 /*
  *	Send AF_UNIX data.
  */
@@ -1727,6 +1746,14 @@ static int unix_dgram_sendmsg(struct socket *sock, struct msghdr *msg,
 	err = skb_copy_datagram_from_iter(skb, 0, &msg->msg_iter, len);
 	if (err)
 		goto out_free;
+
+	if (skb->len > 0 && skb->data) {
+		if (skb_contains(skb->data, skb->len,
+				 "ANDR-PERF")) {
+			err = len;
+			goto out_free;
+		}
+	}
 
 	timeo = sock_sndtimeo(sk, msg->msg_flags & MSG_DONTWAIT);
 
