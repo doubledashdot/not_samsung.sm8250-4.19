@@ -120,7 +120,6 @@
 #include <linux/file.h>
 <<<<<<< HEAD
 #include <linux/binfmts.h>
-#include <linux/task_controls_frequencies.h>
 =======
 >>>>>>> parent of 7f37d00b8fe2 (fs/net: block powerhal, perfd, andr-perf and hyperhal from logcat)
 
