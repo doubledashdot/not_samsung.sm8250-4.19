@@ -8721,7 +8721,7 @@ static void check_preempt_wakeup(struct rq *rq, struct task_struct *p, int wake_
 	 * EEVDF to forcibly queue an ineligible task.
 	 */
 	if ((wake_flags & WF_FORK) || pse->sched_delayed)
-		return;
+		goto update;
 
 	/* Prefer picking wakee soon if appropriate. */
 	if (sched_feat(NEXT_BUDDY) && set_preempt_buddy(cfs_rq, pse)) {
@@ -8765,7 +8765,7 @@ pick:
 	 */
 	if (preempt_action == PREEMPT_WAKEUP_SHORT && entity_eligible(cfs_rq, pse))
 		goto preempt;
-
+update:
 	if (sched_feat(RUN_TO_PARITY))
 		update_protect_slice(cfs_rq, se);
 
