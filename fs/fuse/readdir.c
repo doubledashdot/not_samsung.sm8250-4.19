@@ -43,6 +43,10 @@ static void fuse_add_dirent_to_cache(struct file *file,
 	unsigned int offset;
 	void *addr;
 
+	/* Dirent doesn't fit in readdir cache page?  Skip caching. */
+	if (reclen > PAGE_SIZE)
+		return;
+
 	spin_lock(&fi->rdc.lock);
 	/*
 	 * Is cache already completed?  Or this entry does not go at the end of
@@ -249,9 +253,9 @@ retry:
 			if (!IS_ERR(inode)) {
 				struct fuse_inode *fi = get_fuse_inode(inode);
 
-				spin_lock(&fc->lock);
+				spin_lock(&fi->lock);
 				fi->nlookup--;
-				spin_unlock(&fc->lock);
+				spin_unlock(&fi->lock);
 			}
 			return PTR_ERR(dentry);
 		}

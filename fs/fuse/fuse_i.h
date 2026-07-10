@@ -442,8 +442,6 @@ struct fuse_req {
 	/** refcount */
 	refcount_t count;
 
-	bool user_pages;
-
 	/* Request flags, updated with test/set/clear_bit() */
 	unsigned long flags;
 
@@ -955,6 +953,16 @@ static inline u64 get_node_id(struct inode *inode)
 	return get_fuse_inode(inode)->nodeid;
 }
 
+static inline int invalid_nodeid(u64 nodeid)
+{
+	return !nodeid || nodeid == FUSE_ROOT_ID;
+}
+
+static inline u64 fuse_get_attr_version(struct fuse_conn *fc)
+{
+	return atomic64_read(&fc->attr_version);
+}
+
 static inline bool fuse_stale_inode(const struct inode *inode, int generation,
 				    struct fuse_attr *attr)
 {
@@ -970,16 +978,6 @@ static inline void fuse_make_bad(struct inode *inode)
 static inline bool fuse_is_bad(struct inode *inode)
 {
 	return unlikely(test_bit(FUSE_I_BAD, &get_fuse_inode(inode)->state));
-}
-
-static inline int invalid_nodeid(u64 nodeid)
-{
-	return !nodeid || nodeid == FUSE_ROOT_ID;
-}
-
-static inline u64 fuse_get_attr_version(struct fuse_conn *fc)
-{
-	return atomic64_read(&fc->attr_version);
 }
 
 /** Device operations */
@@ -1309,18 +1307,9 @@ struct posix_acl;
 struct posix_acl *fuse_get_acl(struct inode *inode, int type);
 int fuse_set_acl(struct inode *inode, struct posix_acl *acl, int type);
 
+
 /* readdir.c */
 int fuse_readdir(struct file *file, struct dir_context *ctx);
-
-/* passthrough.c */
-void fuse_copyattr(struct file *dst_file, struct file *src_file);
-int fuse_passthrough_open(struct fuse_dev *fud, u32 lower_fd);
-int fuse_passthrough_setup(struct fuse_conn *fc, struct fuse_file *ff,
-			   struct fuse_open_out *openarg);
-void fuse_passthrough_release(struct fuse_passthrough *passthrough);
-ssize_t fuse_passthrough_read_iter(struct kiocb *iocb, struct iov_iter *to);
-ssize_t fuse_passthrough_write_iter(struct kiocb *iocb, struct iov_iter *from);
-ssize_t fuse_passthrough_mmap(struct file *file, struct vm_area_struct *vma);
 
 /**
  * Return the number of bytes in an arguments list
@@ -1348,6 +1337,16 @@ void fuse_dax_inode_init(struct inode *inode);
 void fuse_dax_inode_cleanup(struct inode *inode);
 bool fuse_dax_check_alignment(struct fuse_conn *fc, unsigned int map_alignment);
 void fuse_dax_cancel_work(struct fuse_conn *fc);
+
+/* passthrough.c */
+void fuse_copyattr(struct file *dst_file, struct file *src_file);
+int fuse_passthrough_open(struct fuse_dev *fud, u32 lower_fd);
+int fuse_passthrough_setup(struct fuse_conn *fc, struct fuse_file *ff,
+			   struct fuse_open_out *openarg);
+void fuse_passthrough_release(struct fuse_passthrough *passthrough);
+ssize_t fuse_passthrough_read_iter(struct kiocb *iocb, struct iov_iter *to);
+ssize_t fuse_passthrough_write_iter(struct kiocb *iocb, struct iov_iter *from);
+ssize_t fuse_passthrough_mmap(struct file *file, struct vm_area_struct *vma);
 
 /* backing.c */
 

@@ -1027,7 +1027,7 @@ __releases(fiq->lock)
 }
 
 static void virtio_fs_wake_interrupt_and_unlock(struct fuse_iqueue *fiq,
-											   bool sync)
+						bool sync)
 __releases(fiq->lock)
 {
 	/*
@@ -1243,7 +1243,7 @@ out:
 }
 
 static void virtio_fs_wake_pending_and_unlock(struct fuse_iqueue *fiq,
-											 bool sync)
+					      bool sync)
 __releases(fiq->lock)
 {
 	unsigned int queue_id = VQ_REQUEST; /* TODO multiqueue */
