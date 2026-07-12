@@ -1887,7 +1887,7 @@ CONFIG_WIREGUARD=y
 # CONFIG_WIREGUARD_DEBUG is not set
 # CONFIG_EQUALIZER is not set
 # CONFIG_NET_FC is not set
-# CONFIG_IFB is not set
+CONFIG_IFB=y
 # CONFIG_NET_TEAM is not set
 # CONFIG_MACVLAN is not set
 # CONFIG_IPVLAN is not set
