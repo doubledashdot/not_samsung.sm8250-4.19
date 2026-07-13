@@ -212,7 +212,7 @@ static inline void apply_alternatives_module(void *start, size_t length) { }
  */
 .macro alternative_else_nop_endif
 alternative_else
-	nops	(662b-661b) / AARCH64_INSN_SIZE
+	nops	(662b-661b) / 4
 alternative_endif
 .endm
 

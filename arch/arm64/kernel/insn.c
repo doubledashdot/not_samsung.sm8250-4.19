@@ -21,6 +21,7 @@
 #include <linux/printk.h>
 #include <linux/sizes.h>
 #include <linux/types.h>
+#include <linux/kprobes.h>
 
 #include <asm/debug-monitors.h>
 #include <asm/errno.h>

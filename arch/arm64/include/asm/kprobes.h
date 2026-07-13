@@ -56,6 +56,28 @@ int kprobe_exceptions_notify(struct notifier_block *self,
 			     unsigned long val, void *data);
 int kprobe_breakpoint_handler(struct pt_regs *regs, unsigned int esr);
 int kprobe_single_step_handler(struct pt_regs *regs, unsigned int esr);
+
+struct arch_optimized_insn {
+	kprobe_opcode_t orig_insn[1];
+	kprobe_opcode_t *trampoline;
+};
+
+#define MAX_OPTIMIZED_LENGTH	sizeof(kprobe_opcode_t)
+#define MAX_OPTINSN_SIZE                                                       \
+	((unsigned long)optprobe_template_end - (unsigned long)optprobe_template_entry)
+
+extern __visible kprobe_opcode_t optprobe_template_entry[];
+extern __visible kprobe_opcode_t optprobe_template_val[];
+extern __visible kprobe_opcode_t optprobe_template_orig_addr[];
+extern __visible kprobe_opcode_t optprobe_template_common[];
+extern __visible kprobe_opcode_t optprobe_template_end[];
+extern __visible kprobe_opcode_t optprobe_template_restore_begin[];
+extern __visible kprobe_opcode_t optprobe_template_restore_orig_insn[];
+extern __visible kprobe_opcode_t optprobe_template_restore_end[];
+extern __visible kprobe_opcode_t optinsn_slot[];
+
+void optprobe_common(void);
+
 void kretprobe_trampoline(void);
 void __kprobes *trampoline_probe_handler(struct pt_regs *regs);
 
