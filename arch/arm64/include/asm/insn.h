@@ -20,6 +20,9 @@
 #define	__ASM_INSN_H
 #include <linux/types.h>
 
+#include <asm/alternative.h>
+#include <asm/patching.h>
+
 /* A64 instructions are always 32 bits. */
 #define	AARCH64_INSN_SIZE		4
 
@@ -376,8 +379,6 @@ static inline bool aarch64_insn_is_adr_adrp(u32 insn)
 	return aarch64_insn_is_adr(insn) || aarch64_insn_is_adrp(insn);
 }
 
-int aarch64_insn_read(void *addr, u32 *insnp);
-int aarch64_insn_write(void *addr, u32 insn);
 enum aarch64_insn_encoding_class aarch64_get_insn_class(u32 insn);
 bool aarch64_insn_uses_literal(u32 insn);
 bool aarch64_insn_is_branch(u32 insn);
@@ -477,9 +478,6 @@ u32 aarch64_insn_gen_prefetch(enum aarch64_insn_register base,
 			      enum aarch64_insn_prfm_policy policy);
 s32 aarch64_get_branch_offset(u32 insn);
 u32 aarch64_set_branch_offset(u32 insn, s32 offset);
-
-int aarch64_insn_patch_text_nosync(void *addr, u32 insn);
-int aarch64_insn_patch_text(void *addrs[], u32 insns[], int cnt);
 
 s32 aarch64_insn_adrp_get_offset(u32 insn);
 u32 aarch64_insn_adrp_set_offset(u32 insn, s32 offset);
