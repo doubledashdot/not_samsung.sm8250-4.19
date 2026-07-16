@@ -741,7 +741,7 @@ unsigned long shmem_partial_swap_usage(struct address_space *mapping,
 			continue;
 		}
 
-		if (xa_is_value(page))
+		if (radix_tree_exceptional_entry(page))
 			swapped++;
 
 		if (need_resched()) {
@@ -855,7 +855,7 @@ static void shmem_undo_range(struct inode *inode, loff_t lstart, loff_t lend,
 			if (index >= end)
 				break;
 
-			if (xa_is_value(page)) {
+			if (radix_tree_exceptional_entry(page)) {
 				if (unfalloc)
 					continue;
 				nr_swaps_freed += !shmem_free_swap(mapping,
@@ -952,7 +952,7 @@ static void shmem_undo_range(struct inode *inode, loff_t lstart, loff_t lend,
 			if (index >= end)
 				break;
 
-			if (xa_is_value(page)) {
+			if (radix_tree_exceptional_entry(page)) {
 				if (unfalloc)
 					continue;
 				if (shmem_free_swap(mapping, index, page)) {
@@ -1660,7 +1660,7 @@ static int shmem_swapin_page(struct inode *inode, pgoff_t index,
 	swp_entry_t swap;
 	int error;
 
-	VM_BUG_ON(!*pagep || !xa_is_value(*pagep));
+	VM_BUG_ON(!*pagep || !radix_tree_exceptional_entry(*pagep));
 	swap = radix_to_swp_entry(*pagep);
 	*pagep = NULL;
 
@@ -1794,7 +1794,7 @@ repeat:
 	page = find_lock_entry(mapping, index);
 
 	if (page && vma && userfaultfd_minor(vma)) {
-		if (!xa_is_value(page)) {
+		if (!radix_tree_exceptional_entry(page)) {
 			unlock_page(page);
 			put_page(page);
 		}
@@ -1802,7 +1802,7 @@ repeat:
 		return 0;
 	}
 
-	if (xa_is_value(page)) {
+	if (radix_tree_exceptional_entry(page)) {
 		error = shmem_swapin_page(inode, index, &page,
 					  sgp, gfp, vma, fault_type);
 		if (error == -EEXIST)
@@ -2661,7 +2661,7 @@ static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
 				index = indices[i];
 			}
 			page = pvec.pages[i];
-			if (page && !xa_is_value(page)) {
+			if (page && !radix_tree_exceptional_entry(page)) {
 				if (!PageUptodate(page))
 					page = NULL;
 			}
