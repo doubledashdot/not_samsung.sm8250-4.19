@@ -848,6 +848,7 @@ static ssize_t min_pwrlevel_store(struct device *dev,
 				size_t count)
 {
 	struct kgsl_device *device = dev_get_drvdata(dev);
+	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
 	int ret;
 	unsigned int level = 0;
 
@@ -855,7 +856,7 @@ static ssize_t min_pwrlevel_store(struct device *dev,
 	if (ret)
 		return ret;
 
-	kgsl_pwrctrl_min_pwrlevel_set(device, level);
+	kgsl_pwrctrl_min_pwrlevel_set(device, pwr->num_pwrlevels - 1);
 
 	return count;
 }
@@ -1355,21 +1356,6 @@ static ssize_t min_clock_mhz_store(struct device *dev,
 				struct device_attribute *attr,
 				const char *buf, size_t count)
 {
-	struct kgsl_device *device = dev_get_drvdata(dev);
-	int level, ret;
-	unsigned int freq;
-	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
-
-	ret = kgsl_sysfs_store(buf, &freq);
-	if (ret)
-		return ret;
-
-	freq *= 1000000;
-	level = _get_nearest_pwrlevel(pwr, freq);
-
-	if (level >= 0)
-		kgsl_pwrctrl_min_pwrlevel_set(device, level);
-
 	return count;
 }
 
