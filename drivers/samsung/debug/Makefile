@@ -6,9 +6,6 @@ obj-$(CONFIG_SEC_DEBUG)			+= sec_debug.o \
 					   sec_crashkey.o \
 					   sec_crashkey_long.o
 
-obj-$(CONFIG_SEC_LOG_BUF)		+= sec_log_buf.o \
-					   sec_init_log.o
-
 obj-$(CONFIG_SEC_DEBUG_SCHED_LOG)	+= sec_debug_sched_log.o
 __SEC_DEBUG_SUMMARY_BUILD_ROOT	:= $(shell echo $(srctree) | sed -e 's|/android/kernel/.\+$$||' -e 's|^.\+/||')
 ccflags-$(CONFIG_SEC_DEBUG_SUMMARY)	+= -D__SEC_DEBUG_SUMMARY_BUILD_ROOT=$(__SEC_DEBUG_SUMMARY_BUILD_ROOT)

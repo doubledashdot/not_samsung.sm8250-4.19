@@ -8,6 +8,8 @@ obj-$(CONFIG_SEC_DEBUG)		+= debug/
 obj-$(CONFIG_SEC_MISC)		+= misc/
 obj-$(CONFIG_SEC_QUEST)		+= quest/
 
+obj-$(CONFIG_SEC_LOG_BUF)	+= debug/sec_log_buf.o debug/sec_init_log.o
+
 obj-$(CONFIG_SEC_DEBUG_TEST)	+= debug/
 GCOV_PROFILE_sec_class.o		:=y
 
