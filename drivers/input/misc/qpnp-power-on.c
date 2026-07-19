@@ -290,7 +290,7 @@ static u32 s1_delay[PON_S1_COUNT_MAX + 1] = {
 	6720, 10256
 };
 
-#ifdef CONFIG_SEC_PM
+#ifdef CONFIG_SEC_PM_DEBUG
 static const char * const sec_pon_reason[] = {
 	/* PON_PON_REASON1 */
 	"HARDRST", "SMPL", "RTC", "DC", "USB", "PON1", "CBL", "KPD",
@@ -1476,7 +1476,7 @@ int qpnp_get_s2_reset_onoff(void)
 EXPORT_SYMBOL(qpnp_get_s2_reset_onoff);
 #endif
 
-#if defined(CONFIG_SEC_PM)
+#if defined(CONFIG_SEC_DEBUG_PM)
 static int
 qpnp_control_s2_reset(struct qpnp_pon *pon, struct qpnp_pon_config *cfg, int on)
 {
@@ -1548,7 +1548,7 @@ ssize_t sec_get_pwrsrc(char *buf)
 	return size;
 }
 EXPORT_SYMBOL(sec_get_pwrsrc);
-#endif /* CONFIG_SEC_PM */
+#endif /* CONFIG_SEC_DEBUG_PM */
 
 static int
 qpnp_pon_request_irqs(struct qpnp_pon *pon, struct qpnp_pon_config *cfg)
@@ -2407,7 +2407,7 @@ static int qpnp_reset_enabled(const char *val, const struct kernel_param *kp)
 		return -EFAULT;
 	}
 
-#ifdef CONFIG_SEC_PM
+#ifdef CONFIG_SEC_DEBUG_PM
 	if (!reset_enabled)
 		qpnp_control_s2_reset(sys_reset_dev, cfg, 0);
 	else
@@ -2553,10 +2553,13 @@ static void __ref smpl_panic(struct work_struct *work)
 		int offset;
 
 		offset = scnprintf(buf, sizeof(buf), "SMPL Occurred ");
+#ifdef CONFIG_SEC_DEBUG_PM
 		sec_get_pwrsrc(buf + offset);
+#endif 
 		panic("%s", buf);
 	}
 }
+
 static int qpnp_pon_read_hardware_info(struct qpnp_pon *pon, bool sys_reset)
 {
 	struct device *dev = pon->dev;
@@ -2612,8 +2615,10 @@ static int qpnp_pon_read_hardware_info(struct qpnp_pon *pon, bool sys_reset)
 #ifdef CONFIG_SEC_PM
 	if (index > -1)
 		pon_index[num_pmic] = index;
+#ifdef CONFIG_SEC_PM_DEBUG
 	else
 		pon_index[num_pmic] = ARRAY_SIZE(sec_pon_reason) - 1;
+#endif
 #endif
 	cold_boot = sys_reset_dev ? !_qpnp_pon_is_warm_reset(sys_reset_dev)
 				  : !_qpnp_pon_is_warm_reset(pon);
@@ -2655,8 +2660,10 @@ static int qpnp_pon_read_hardware_info(struct qpnp_pon *pon, bool sys_reset)
 #ifdef CONFIG_SEC_PM
 	if (index > -1)
 		poff_index[num_pmic] = index;
+#ifdef CONFIG_SEC_PM_DEBUG
 	else
 		poff_index[num_pmic] = ARRAY_SIZE(sec_poff_reason) - 1;
+#endif
 	num_pmic++;
 #endif
 	if (index >= ARRAY_SIZE(qpnp_poff_reason) || index < 0 ||
@@ -3037,7 +3044,7 @@ module_exit(qpnp_pon_exit);
 MODULE_DESCRIPTION("QPNP PMIC Power-on driver");
 MODULE_LICENSE("GPL v2");
 
-#if defined(CONFIG_SEC_DEBUG)
+#if defined(CONFIG_SEC_PM)
 int qpnp_control_s2_reset_onoff(int on)
 {
 	int rc;

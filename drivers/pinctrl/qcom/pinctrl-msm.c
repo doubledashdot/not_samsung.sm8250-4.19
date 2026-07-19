@@ -40,12 +40,10 @@
 #include "pinctrl-msm.h"
 #include "../pinctrl-utils.h"
 
-#ifdef CONFIG_SEC_PM_DEBUG
 #include <linux/sec-pinmux.h>
 #ifdef CONFIG_SEC_GPIO_DVS
 #include <linux/secgpio_dvs.h>
 #endif /* CONFIG_SEC_GPIO_DVS */
-#endif /* CONFIG_SEC_PM_DEBUG */
 
 #define MAX_NR_GPIO 300
 #define PS_HOLD_OFFSET 0x820
@@ -93,10 +91,8 @@ struct msm_pinctrl {
 };
 
 static struct msm_pinctrl *msm_pinctrl_data;
-#ifdef CONFIG_SEC_PM_DEBUG
 static int total_pin_count = 0;
 static int msm_gpio_chip_base = 0;
-#endif /* CONFIG_SEC_PM_DEBUG */
 
 static int msm_get_groups_count(struct pinctrl_dev *pctldev)
 {
@@ -548,7 +544,6 @@ static void msm_gpio_set(struct gpio_chip *chip, unsigned offset, int value)
 	raw_spin_unlock_irqrestore(&pctrl->lock, flags);
 }
 
-#ifdef CONFIG_SEC_PM_DEBUG
 int get_msm_gpio_chip_base(void)
 {
 	return msm_gpio_chip_base;
@@ -679,7 +674,6 @@ bool msm_gpio_is_valid(int gpionum)
 
 	return 1;
 }
-#endif /* CONFIG_SEC_PM_DEBUG */
 
 #ifdef CONFIG_DEBUG_FS
 #include <linux/seq_file.h>
@@ -759,10 +753,8 @@ static void msm_gpio_dbg_show(struct seq_file *s, struct gpio_chip *chip)
 	unsigned i;
 
 	for (i = 0; i < chip->ngpio; i++, gpio++) {
-#ifdef CONFIG_SEC_PM_DEBUG
 		if(!msm_gpio_is_valid(i))
 			continue;
-#endif /* CONFIG_SEC_PM_DEBUG */
 		msm_gpio_dbg_show_one(s, NULL, chip, i, gpio);
 		seq_puts(s, "\n");
 	}
@@ -1594,9 +1586,7 @@ static int msm_gpio_init(struct msm_pinctrl *pctrl)
 
 	gpiochip_set_chained_irqchip(chip, &pctrl->irq_chip, pctrl->irq,
 				     msm_gpio_irq_handler);
-#ifdef CONFIG_SEC_PM_DEBUG
 	msm_gpio_chip_base = chip->base;
-#endif /* CONFIG_SEC_PM_DEBUG */
 	return 0;
 fail:
 	gpiochip_remove(&pctrl->chip);
@@ -1833,9 +1823,7 @@ int msm_pinctrl_probe(struct platform_device *pdev,
 	pctrl->desc.name = dev_name(&pdev->dev);
 	pctrl->desc.pins = pctrl->soc->pins;
 	pctrl->desc.npins = pctrl->soc->npins;
-#ifdef CONFIG_SEC_PM_DEBUG
 	total_pin_count = pctrl->desc.npins;
-#endif /* CONFIG_SEC_PM_DEBUG */
 
 	pctrl->pctrl = devm_pinctrl_register(&pdev->dev, &pctrl->desc, pctrl);
 	if (IS_ERR(pctrl->pctrl)) {

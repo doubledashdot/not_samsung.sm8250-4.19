@@ -362,6 +362,8 @@ extern void __deprecated sec_debug_set_thermal_upload(void);
 
 static inline bool sec_debug_is_enabled(void) { return false; }
 static inline unsigned int sec_debug_level(void) { return 0; }
+static inline int sec_kn_register_notifier(struct notifier_block *nb, int (*notifier_call)(struct notifier_block *, unsigned long, void *)) { return 0; }
+static inline void do_keyboard_notifier(int onoff) { }
 static inline void sec_debug_strcpy_task_comm(char *dst, char *src) {}
 static inline void sec_debug_save_context(void) {}
 static inline void sec_debug_update_dload_mode(const int restart_mode, const int in_panic) {}
