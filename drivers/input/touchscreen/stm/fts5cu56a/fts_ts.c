@@ -3868,7 +3868,9 @@ static void fts_sponge_dump_flush(struct fts_ts_info *info, int dump_area)
 			snprintf(buff, sizeof(buff), "%03d: %04x%04x%04x%04x%04x\n",
 					i + (info->sponge_dump_event * dump_area),
 					edata[0], edata[1], edata[2], edata[3], edata[4]);
+#ifdef CONFIG_SEC_DEBUG_TSP_LOG
 			sec_tsp_sponge_log(buff);
+#endif
 		}
 	}
 

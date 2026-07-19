@@ -28,11 +28,13 @@
 #define PROC_FILE_NAME	"dplog"
 #define LOG_PREFIX		"secdp"
 
+#ifdef CONFIG_SEC_DISPLAYPORT_LOGGER
 static char log_buf[BUF_SIZE];
 static unsigned int g_curpos;
 static int is_secdp_logger_init;
 static int is_buf_full;
 static int log_max_count = -1;
+#endif
 
 void dp_logger_print_date_time(void)
 {
@@ -53,6 +55,7 @@ void dp_logger_print_date_time(void)
 	secdp_logger_print("%s\n", tmp);
 }
 
+#ifdef CONFIG_SEC_DISPLAYPORT_LOGGER
 /* set max log count, if count is -1, no limit */
 void secdp_logger_set_max_count(int count)
 {
@@ -187,3 +190,4 @@ int secdp_logger_init(void)
 
 	return 0;
 }
+#endif

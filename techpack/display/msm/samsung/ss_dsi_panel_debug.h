@@ -27,9 +27,7 @@
 
 
 //#include "ss_dsi_panel_common.h"
-#ifdef CONFIG_SEC_DEBUG
 #include <linux/sec_debug.h>
-#endif
 
 
 struct samsung_display_driver_data;

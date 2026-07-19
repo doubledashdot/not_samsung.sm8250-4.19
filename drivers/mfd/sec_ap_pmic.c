@@ -31,7 +31,9 @@ static int pwrsrc_show(struct seq_file *m, void *v)
 {
 	char buf[SZ_1K];
 
+#ifdef CONFIG_SEC_DEBUG_PM
 	sec_get_pwrsrc(buf);
+#endif
 	seq_printf(m, "%s", buf);
 
 	return 0;

@@ -1019,7 +1019,9 @@ power_attr(pm_freeze_timeout);
 #endif	/* CONFIG_FREEZER*/
 
 #ifdef CONFIG_SEC_PM
+#ifdef CONFIG_SEC_PM_DEBUG
 extern int qpnp_set_resin_wk_int(int en);
+#endif
 static int volkey_wakeup;
 static ssize_t volkey_wakeup_show(struct kobject *kobj,
 				  struct kobj_attribute *attr, char *buf)
@@ -1040,7 +1042,9 @@ static ssize_t volkey_wakeup_store(struct kobject *kobj,
 		return n;
 
 	volkey_wakeup = val;
+#ifdef CONFIG_SEC_PM_DEBUG
 	qpnp_set_resin_wk_int(volkey_wakeup);
+#endif
 
 	return n;
 
