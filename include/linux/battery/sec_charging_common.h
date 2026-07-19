@@ -138,8 +138,8 @@ enum rx_device_type {
 
 enum sec_battery_usb_conf {
 	USB_CURRENT_UNCONFIGURED = 100,
-	USB_CURRENT_HIGH_SPEED = 500,
-	USB_CURRENT_SUPER_SPEED = 900,
+	USB_CURRENT_HIGH_SPEED = 1300,
+	USB_CURRENT_SUPER_SPEED = 2200,
 };
 
 enum power_supply_ext_health {

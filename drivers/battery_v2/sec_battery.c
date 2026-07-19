@@ -510,16 +510,14 @@ __visible_for_testing int sec_bat_get_wireless_current(struct sec_battery_info *
 
 	/* 3. WPC_TEMP_MODE */
 	if (is_wireless_type(battery->cable_type) && battery->chg_limit) {
-		if ((battery->siop_level >= 100 && !battery->lcd_status) &&
+		if (battery->siop_level >= 100 &&
 				(incurr > battery->pdata->wpc_input_limit_current)) {
 			if (battery->cable_type == SEC_BATTERY_CABLE_WIRELESS_TX &&
 				battery->pdata->wpc_input_limit_by_tx_check)
 				incurr = battery->pdata->wpc_input_limit_current_by_tx;
 			else
 				incurr = battery->pdata->wpc_input_limit_current;
-		} else if ((battery->siop_level < 100 || battery->lcd_status) &&
-				(incurr > battery->pdata->wpc_lcd_on_input_limit_current))
-			incurr = battery->pdata->wpc_lcd_on_input_limit_current;
+		}
 	}
 
 	/* 5. Full-Additional state */
@@ -1009,9 +1007,6 @@ int sec_bat_check_lrp_step(
 	int lrp_high_temp_recov_st1 = battery->pdata->lrp_temp[LRP_NORMAL].recov[ST1][LCD_OFF];
 	int lrp_high_temp_recov_st2 = battery->pdata->lrp_temp[LRP_NORMAL].recov[ST2][LCD_OFF];
 
-	if (lcd_sts)
-		lcd_st = LCD_ON;
-
 	if (pt == SFC_45W)
 		lrp_pt = LRP_45W;
 	else if (pt == SFC_25W)
@@ -1108,37 +1103,22 @@ void sec_bat_check_lrp_temp(
 				*input_current = battery->pdata->lrp_curr[LRP_25W].st_icl[lrp_step - 1];
 				*charging_current = battery->pdata->lrp_curr[LRP_25W].st_fcc[lrp_step - 1];
 			} else {
-				if (lcd_sts) {
-					if (*input_current > (60000 / battery->input_voltage))
-						*input_current = 60000 / battery->input_voltage;
-				} else {
-					if (*input_current > battery->pdata->chg_input_limit_current)
-						*input_current = battery->pdata->chg_input_limit_current;
-					if (*charging_current > battery->pdata->chg_charging_limit_current)
-						*charging_current = battery->pdata->chg_charging_limit_current;
-				}
+				if (*input_current > battery->pdata->chg_input_limit_current)
+					*input_current = battery->pdata->chg_input_limit_current;
+				if (*charging_current > battery->pdata->chg_charging_limit_current)
+					*charging_current = battery->pdata->chg_charging_limit_current;
 			}
 		} else if (is_hv_wire_type(ct)) {
 			if (is_hv_wire_12v_type(battery->cable_type)) {
-				if (lcd_sts) {
-					if (*input_current > battery->pdata->siop_hv_12v_input_limit_current)
-						*input_current = battery->pdata->siop_hv_12v_input_limit_current;
-				} else {
-					if (*input_current > battery->pdata->chg_input_limit_current)
-						*input_current = battery->pdata->chg_input_limit_current;
-					if (*charging_current > battery->pdata->chg_charging_limit_current)
-						*charging_current = battery->pdata->chg_charging_limit_current;
-				}
+				if (*input_current > battery->pdata->chg_input_limit_current)
+					*input_current = battery->pdata->chg_input_limit_current;
+				if (*charging_current > battery->pdata->chg_charging_limit_current)
+					*charging_current = battery->pdata->chg_charging_limit_current;
 			} else {
-				if (lcd_sts) {
-					if (*input_current > battery->pdata->siop_hv_input_limit_current)
-						*input_current = battery->pdata->siop_hv_input_limit_current;
-				} else {
-					if (*input_current > battery->pdata->chg_input_limit_current)
-						*input_current = battery->pdata->chg_input_limit_current;
-					if (*charging_current > battery->pdata->chg_charging_limit_current)
-						*charging_current = battery->pdata->chg_charging_limit_current;
-				}
+				if (*input_current > battery->pdata->chg_input_limit_current)
+					*input_current = battery->pdata->chg_input_limit_current;
+				if (*charging_current > battery->pdata->chg_charging_limit_current)
+					*charging_current = battery->pdata->chg_charging_limit_current;
 			}
 		} else {
 			if (*input_current > battery->pdata->siop_input_limit_current)

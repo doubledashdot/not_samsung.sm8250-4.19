@@ -350,11 +350,11 @@
 
 		battery,siop_input_limit_current = <1200>;
 		battery,siop_charging_limit_current = <1800>;
-		battery,siop_hv_input_limit_current = <700>;
+		battery,siop_hv_input_limit_current = <3000>;
 		battery,siop_hv_input_limit_current_2nd = <450>;
 		battery,siop_hv_charging_limit_current = <1000>;
 		battery,siop_apdo_input_limit_current = <1000>;
-		battery,siop_apdo_charging_limit_current = <2000>;
+		battery,siop_apdo_charging_limit_current = <3100>;
 
 		battery,siop_wireless_input_limit_current = <700>;
 		battery,siop_wireless_charging_limit_current = <700>;
