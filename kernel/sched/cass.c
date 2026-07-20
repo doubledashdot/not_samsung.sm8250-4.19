@@ -96,7 +96,8 @@ bool cass_prime_cpu(const struct cass_cpu_cand *c)
 static __always_inline
 bool cass_cpu_better(const struct cass_cpu_cand *a,
 		     const struct cass_cpu_cand *b, unsigned long p_util,
-		     int this_cpu, int prev_cpu, int prev_llc_id, bool sync)
+		     unsigned long uc_max, int this_cpu, int prev_cpu,
+		     int prev_llc_id, bool sync)
 {
 #define cass_cmp(a, b) ({ res = (a) - (b); })
 #define cass_eq(a, b) ({ res = (a) == (b); })
@@ -122,6 +123,20 @@ bool cass_cpu_better(const struct cass_cpu_cand *a,
 	/* Prefer the CPU that isn't the single fastest one in the system */
 	if (cass_cmp(cass_prime_cpu(b), cass_prime_cpu(a)))
 		goto done;
+
+	/* Prefer smaller CPUs for tasks capped by uclamp_max below Prime */
+	if (uc_max < SCHED_CAPACITY_SCALE) {
+		bool a_fits = a->cap_orig >= uc_max;
+		bool b_fits = b->cap_orig >= uc_max;
+
+		/* Prefer a CPU that satisfies the cap over one that doesn't */
+		if (cass_cmp(a_fits, b_fits))
+			goto done;
+
+		/* Among CPUs that satisfy the cap, prefer the smaller one */
+		if (a_fits && b_fits && cass_cmp(b->cap_orig, a->cap_orig))
+			goto done;
+	}
 
 	/* Prefer the CPU with lower relative utilization */
 	if (cass_cmp(b->util, a->util))
@@ -190,7 +205,7 @@ static int cass_best_cpu(struct task_struct *p, int prev_cpu, bool sync, bool rt
 	/* Initialize @best such that @best always has a valid CPU at the end */
 	struct cass_cpu_cand cands[2], *best = cands;
 	int this_cpu = raw_smp_processor_id();
-	unsigned long p_util, uc_min;
+	unsigned long p_util, uc_min, uc_max;
 	bool has_idle = false;
 	int cidx = 0, cpu, prev_llc_id;
 
@@ -200,6 +215,7 @@ static int cass_best_cpu(struct task_struct *p, int prev_cpu, bool sync, bool rt
 	 */
 	p_util = rt ? 0 : task_util_est(p);
 	uc_min = uclamp_eff_value(p, UCLAMP_MIN);
+	uc_max = uclamp_eff_value(p, UCLAMP_MAX);
 
 	/*
 	 * When the LLC spans all CPUs (e.g. DynamIQ), every candidate shares
@@ -301,7 +317,7 @@ static int cass_best_cpu(struct task_struct *p, int prev_cpu, bool sync, bool rt
 		 * overloaded, since the relative utilization calculation
 		 * disregards thermal pressure.
 		 */
-		curr->eff_util = max(curr->util + curr->hard_util, uc_min);
+		curr->eff_util = min(max(curr->util + curr->hard_util, uc_min), uc_max);
 
 		/* Clamp the utilization to the minimum performance threshold */
 		if (curr->util < uc_min)
@@ -329,8 +345,8 @@ static int cass_best_cpu(struct task_struct *p, int prev_cpu, bool sync, bool rt
 		 * cidx still needs to be changed to the other candidate slot.
 		 */
 		if (best == curr ||
-		    cass_cpu_better(curr, best, p_util, this_cpu, prev_cpu,
-				    prev_llc_id, sync)) {
+		    cass_cpu_better(curr, best, p_util, uc_max, this_cpu,
+				    prev_cpu, prev_llc_id, sync)) {
 			best = curr;
 			cidx ^= 1;
 		}
