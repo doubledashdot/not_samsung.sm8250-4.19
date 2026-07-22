@@ -14,6 +14,8 @@
 #include "kgsl_pool.h"
 #include "kgsl_sharedmem.h"
 
+#include <linux/e404_attributes.h>
+
 #ifdef CONFIG_HUGEPAGE_POOL
 #include <linux/hugepage_pool.h>
 #define KGSL_MAX_POOLS 5
@@ -369,7 +371,9 @@ int kgsl_pool_alloc_page(int *page_size, struct page **pages,
 	}
 
 done:
-	kgsl_zero_page(page, order, dev);
+	if (e404_data.kgsl_skip_zeroing == 0)
+		kgsl_zero_page(page, order, dev);
+
 	for (j = 0; j < (*page_size >> PAGE_SHIFT); j++) {
 		p = nth_page(page, j);
 		pages[pcount] = p;
