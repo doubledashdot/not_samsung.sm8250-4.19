@@ -24,7 +24,7 @@
 
 #define SSP_DEVICE_ID		0x55
 
-#ifdef SSP_DBG
+#if defined(SSP_DBG) && defined(CONFIG_LOG_SMASNUG)
 #define ssp_dbg(format, ...) pr_info("[SSP] "format, ##__VA_ARGS__)
 #else
 #define ssp_dbg(format, ...)

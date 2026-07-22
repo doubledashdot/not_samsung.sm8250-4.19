@@ -2150,12 +2150,14 @@ static void max77705_shutdown_reg_log(struct max77705_muic_data *muic_data)
 	max77705_muic_read_reg(i2c, MAX77705_USBC_REG_VDM_INT_M, &status[10]);
 	max77705_muic_read_reg(pmic_i2c, MAX77705_PMIC_REG_INTSRC_MASK, &status[11]);
 
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_info("%s USBC1:0x%02x, USBC2:0x%02x, BC:0x%02x, CC0:0x%x, CC1:0x%x, PD0:0x%x, PD1:0x%x attached_dev:%d\n",
 		__func__, status[0], status[1], status[2], status[3], status[4], status[5], status[6],
 		muic_data->attached_dev);
 	pr_info("%s UIC_INT_M:0x%x, CC_INT_M:0x%x, PD_INT_M:0x%x, VDM_INT_M:0x%x, PMIC_MASK:0x%x, WDT:%d, POR:%d\n",
 		__func__, status[7], status[8], status[9], status[10], status[11],
 		muic_data->usbc_pdata->watchdog_count, muic_data->usbc_pdata->por_count);
+#endif
 }
 
 #if defined(CONFIG_MUIC_MAX77705_CCIC)

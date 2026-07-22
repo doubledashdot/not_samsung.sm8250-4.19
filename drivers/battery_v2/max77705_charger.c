@@ -119,6 +119,7 @@ static void check_charger_unlock_state(struct max77705_charger_data *charger)
 
 static void max77705_test_read(struct max77705_charger_data *charger)
 {
+#if defined(CONFIG_LOG_SMASNUG)
 	u8 data = 0;
 	u32 addr = 0;
 	char str[1024] = { 0, };
@@ -128,6 +129,7 @@ static void max77705_test_read(struct max77705_charger_data *charger)
 		sprintf(str + strlen(str), "[0x%02x]0x%02x, ", addr, data);
 	}
 	pr_info("max77705 : %s\n", str);
+#endif
 }
 
 static int max77705_get_autoibus(struct max77705_charger_data *charger)
@@ -164,7 +166,9 @@ static int max77705_get_vbus_state(struct max77705_charger_data *charger)
 		pr_info("%s: VBUS is invalid. CHGIN > CHGIN_OVLO", __func__);
 		break;
 	case 0x03:
+#if defined(CONFIG_LOG_SMASNUG)
 		pr_info("%s: VBUS is valid. CHGIN < CHGIN_OVLO", __func__);
+#endif
 		break;
 	default:
 		break;
@@ -244,8 +248,9 @@ static int max77705_chg_set_wdtmr_en(struct max77705_charger_data *charger, bool
 
 static int max77705_chg_set_wdtmr_kick(struct max77705_charger_data *charger)
 {
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_info("%s: WDT Kick\n", __func__);
-
+#endif
 	max77705_update_reg(charger->i2c, MAX77705_CHG_REG_CNFG_06,
 			    (MAX77705_WDTCLR << CHG_CNFG_06_WDTCLR_SHIFT), CHG_CNFG_06_WDTCLR_MASK);
 
@@ -337,6 +342,7 @@ static int max77705_get_charging_health(struct max77705_charger_data *charger)
 			max77705_set_switching_frequency(charger, MAX77705_CHG_FSW_1_5MHz);
 	}
 
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_info("%s: reg_data(0x%x)\n", __func__, reg_data);
 	switch (reg_data) {
 	case 0x00:
@@ -366,6 +372,7 @@ static int max77705_get_charging_health(struct max77705_charger_data *charger)
 			MAX77705_CHG_REG_DETAILS_00, &reg_data);
 		pr_info("%s: details00(0x%x)\n", __func__, reg_data);
 	}
+#endif
 
 	/* get wdt status */
 	wdt_status = max77705_chg_get_wdtmr_status(charger);
@@ -396,8 +403,10 @@ static int max77705_get_charging_health(struct max77705_charger_data *charger)
 	psy_do_property("max77705-fuelgauge", get,
 		POWER_SUPPLY_EXT_PROP_MEASURE_INPUT, val_vbyp);
 
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_info("%s: vbus_state: 0x%x, chg_dtls: 0x%x, iin: %dmA, vbyp: %dmV, abnormal: %s\n",
 		__func__, vbus_state, chg_dtls, val_iin.intval, val_vbyp.intval, (abnormal_status ? "true" : "false"));
+#endif
 
 	/*  OVP is higher priority */
 	if (vbus_state == 0x02) {	/*  CHGIN_OVLO */
@@ -1159,8 +1168,10 @@ static void max77705_chg_monitor_work(struct max77705_charger_data *charger)
 	max77705_read_reg(charger->i2c, MAX77705_CHG_REG_CNFG_05, &reg_data);
 	reg_b2sovrc = (reg_data & CHG_CNFG_05_REG_B2SOVRC_MASK) >> CHG_CNFG_05_REG_B2SOVRC_SHIFT;
 
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_info("%s: [CHG] MODE(0x%x), B2SOVRC(0x%x), otg_on(%d)\n",
 		__func__, reg_mode, reg_b2sovrc, charger->otg_on);
+#endif
 }
 
 static int max77705_chg_create_attrs(struct device *dev)

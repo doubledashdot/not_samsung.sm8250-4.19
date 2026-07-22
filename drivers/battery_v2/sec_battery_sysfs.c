@@ -347,8 +347,10 @@ ssize_t sec_bat_show_attrs(struct device *dev,
 				psy_do_property(battery->pdata->fuelgauge_name, get,
 					POWER_SUPPLY_EXT_PROP_MEASURE_SYS, isys);
 			}
+#if defined(CONFIG_LOG_SMASNUG)
 			pr_err("%s: batt_current_ua_now - Input(%dmV, %dmA), Output(%dmA), ISys(%dmA)\n",
 					__func__, vin.intval, iin.intval, value.intval, isys.intval);
+#endif
 
 			i += scnprintf(buf + i, PAGE_SIZE - i, "%d\n",
 				value.intval);

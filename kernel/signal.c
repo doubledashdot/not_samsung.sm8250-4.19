@@ -1215,7 +1215,7 @@ static int send_signal(int sig, struct siginfo *info, struct task_struct *t,
 	from_ancestor_ns = si_fromuser(info) &&
 			   !task_pid_nr_ns(current, task_active_pid_ns(t));
 #endif
-
+#if defined(CONFIG_LOG_SMASNUG)
 	/* [SystemF/W, si_code is 0 : from userspace, si_code is over 0 : from kernel */
 	if (!is_si_special(info)) {
 		if ((current->pid != 1) && ((sig == SIGKILL && !strncmp("main", t->group_leader->comm, 4))
@@ -1226,7 +1226,7 @@ static int send_signal(int sig, struct siginfo *info, struct task_struct *t,
 		}
 	}
 	/* SystemF/W]*/
-
+#endif
 	return __send_signal(sig, info, t, type, from_ancestor_ns);
 }
 

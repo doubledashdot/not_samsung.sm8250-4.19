@@ -117,6 +117,7 @@ set_default_value:
 
 static void max77705_fg_periodic_read(struct max77705_fuelgauge_data *fuelgauge)
 {
+#if defined(CONFIG_LOG_SMASNUG)
 	static struct timespec old_ts = {0, };
 	struct timespec c_ts = {0, };
 	ktime_t current_time;
@@ -170,10 +171,13 @@ static void max77705_fg_periodic_read(struct max77705_fuelgauge_data *fuelgauge)
 	}
 
 	pr_info("[FG] %s\n", str);
+#endif
 
 	max77705_fg_adaptation_wa(fuelgauge);
 
+#if defined(CONFIG_LOG_SMASNUG)
 	kfree(str);
+#endif
 }
 #endif
 
@@ -199,11 +203,13 @@ static int max77705_fg_read_vcell(struct max77705_fuelgauge_data *fuelgauge)
 	temp2 = temp / 1000000;
 	vcell += (temp2 << 4);
 
+#if defined(CONFIG_LOG_SMASNUG)
 	if (!(fuelgauge->info.pr_cnt++ % PRINT_COUNT)) {
 		fuelgauge->info.pr_cnt = 1;
 		pr_info("%s: VCELL(%d)mV, data(0x%04x)\n",
 			__func__, vcell, (data[1] << 8) | data[0]);
 	}
+#endif
 
 	if ((fuelgauge->vempty_mode == VEMPTY_MODE_SW_VALERT) &&
 	    (vcell >= fuelgauge->battery_data->sw_v_empty_recover_vol)) {
@@ -354,8 +360,10 @@ static int max77705_fg_write_temp(struct max77705_fuelgauge_data *fuelgauge,
 	data[1] = temperature / 10;
 	max77705_bulk_write(fuelgauge->i2c, TEMPERATURE_REG, 2, data);
 
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_debug("%s: temperature to (%d, 0x%02x%02x)\n",
 		__func__, temperature, data[1], data[0]);
+#endif
 
 	fuelgauge->temperature = temperature;
 	if (!fuelgauge->vempty_init_flag)
@@ -387,9 +395,11 @@ static int max77705_fg_read_temp(struct max77705_fuelgauge_data *fuelgauge)
 	} else
 		temper = 20000;
 
+#if defined(CONFIG_LOG_SMASNUG)
 	if (!(fuelgauge->info.pr_cnt % PRINT_COUNT))
 		pr_info("%s: TEMPERATURE(%d), data(0x%04x)\n",
 			__func__, temper, (data[1] << 8) | data[0]);
+#endif
 
 	return temper / 100;
 }
@@ -449,7 +459,9 @@ static int max77705_fg_read_qh(struct max77705_fuelgauge_data *fuelgauge)
 	if (sign)
 		qh *= -1;
 
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_info("%s : QH(%d)\n", __func__, qh);
+#endif
 
 	return qh;
 }
@@ -483,7 +495,7 @@ static int max77705_fg_read_soc(struct max77705_fuelgauge_data *fuelgauge)
 
 	soc = ((data[1] * 100) + (data[0] * 100 / 256)) / 10;
 
-#ifdef BATTERY_LOG_MESSAGE
+#if defined(BATTERY_LOG_MESSAGE) && defined(CONFIG_LOG_SMASNUG)
 	pr_debug("%s: raw capacity (%d)\n", __func__, soc);
 
 	if (!(fuelgauge->info.pr_cnt % PRINT_COUNT)) {
@@ -512,11 +524,13 @@ static int max77705_fg_read_rawsoc(struct max77705_fuelgauge_data *fuelgauge)
 
 	soc = (data[1] * 100) + (data[0] * 100 / 256);
 
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_debug("%s: raw capacity (0.01%%) (%d)\n", __func__, soc);
 
 	if (!(fuelgauge->info.pr_cnt % PRINT_COUNT))
 		pr_debug("%s: raw capacity (%d), data(0x%04x)\n",
 			 __func__, soc, (data[1] << 8) | data[0]);
+#endif
 
 	return min(soc, 10000);
 }
@@ -647,8 +661,10 @@ static int max77705_fg_read_current(struct max77705_fuelgauge_data *fuelgauge,
 	if (sign)
 		i_current *= -1;
 
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_debug("%s: current=%d%s\n", __func__, i_current,
 		(unit == SEC_BATTERY_CURRENT_UA)? "uA" : "mA");
+#endif
 
 	return i_current;
 }
@@ -695,8 +711,10 @@ static int max77705_fg_read_avg_current(struct max77705_fuelgauge_data
 		cnt++;
 	}
 
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_debug("%s: avg_current=%d%s\n", __func__, avg_current,
 		(unit == SEC_BATTERY_CURRENT_UA)? "uA" : "mA");
+#endif
 
 	return avg_current;
 }
@@ -734,9 +752,11 @@ static int max77705_fg_read_isys(
 		/* i_current must have a value of inow compensated */
 		i_current = i_current - inow_comp;
 	}
+#if defined(CONFIG_LOG_SMASNUG)
 	if (!(fuelgauge->info.pr_cnt % PRINT_COUNT))
 		pr_info("%s: isys_current=%d%s\n", __func__, i_current,
 			(unit == SEC_BATTERY_CURRENT_UA)? "uA" : "mA");
+#endif
 
 	return i_current;
 }
@@ -774,9 +794,12 @@ static int max77705_fg_read_isys_avg(
 		/* i_current must have a value of inow compensated */
 		avg_current = avg_current - avg_inow_comp;
 	}
+
+#if defined(CONFIG_LOG_SMASNUG)
 	if (!(fuelgauge->info.pr_cnt % PRINT_COUNT))
 		pr_info("%s: isys_avg_current=%d%s\n", __func__, avg_current,
 			(unit == SEC_BATTERY_CURRENT_UA)? "uA" : "mA");
+#endif
 
 	return avg_current;
 }
@@ -805,9 +828,11 @@ static int max77705_fg_read_iin(
 		i_current = temp * 125 / 1000;
 	}
 
+#if defined(CONFIG_LOG_SMASNUG)
 	if (!(fuelgauge->info.pr_cnt % PRINT_COUNT))
 		pr_debug("%s: iin_current=%d%s\n", __func__, i_current,
 			(unit == SEC_BATTERY_CURRENT_UA)? "uA" : "mA");
+#endif
 
 	return i_current;
 }
@@ -834,10 +859,12 @@ static int max77705_fg_read_vbyp(struct max77705_fuelgauge_data *fuelgauge)
 	temp2 = temp / 1000000;
 	vbyp += (temp2 << 4);
 
+#if defined(CONFIG_LOG_SMASNUG)
 	if (!(fuelgauge->info.pr_cnt % PRINT_COUNT)) {
 		pr_info("%s: VBYP(%d), data(0x%04x)\n",
 			__func__, vbyp, (data[1] << 8) | data[0]);
 	}
+#endif
 
 	return vbyp;
 }
@@ -864,10 +891,12 @@ static int max77705_fg_read_vsys(struct max77705_fuelgauge_data *fuelgauge)
 	temp2 = temp / 100000;
 	vsys += (temp2 << 4);
 
+#if defined(CONFIG_LOG_SMASNUG)
 	if (!(fuelgauge->info.pr_cnt % PRINT_COUNT)) {
 		pr_info("%s: VSYS(%d), data(0x%04x)\n",
 			__func__, vsys, (data[1] << 8) | data[0]);
 	}
+#endif
 
 	return vsys;
 }
@@ -1249,7 +1278,9 @@ static int max77705_get_fuelgauge_soc(struct max77705_fuelgauge_data *fuelgauge)
 
 	fuelgauge->info.soc = fg_soc;
 
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_debug("%s: soc(%d)\n", __func__, fuelgauge->info.soc);
+#endif
 
 	return fg_soc;
 }
@@ -1471,6 +1502,7 @@ static void max77705_fg_get_scaled_capacity(struct max77705_fuelgauge_data
 					    *fuelgauge,
 					    union power_supply_propval *val)
 {
+#if defined(CONFIG_LOG_SMASNUG)
 	int raw_capacity = val->intval;
 
 	val->intval = (val->intval < fuelgauge->pdata->capacity_min) ?
@@ -1480,6 +1512,7 @@ static void max77705_fg_get_scaled_capacity(struct max77705_fuelgauge_data
 	pr_info("%s : capacity_max (%d) scaled capacity(%d.%d), raw_soc(%d.%d)\n",
 		__func__, fuelgauge->capacity_max, val->intval / 10, val->intval % 10,
 		raw_capacity / 10, raw_capacity % 10);
+#endif
 }
 
 /* capacity is integer */
@@ -1487,9 +1520,10 @@ static void max77705_fg_get_atomic_capacity(
 	struct max77705_fuelgauge_data *fuelgauge,
 	union power_supply_propval *val)
 {
-
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_debug("%s : NOW(%d), OLD(%d)\n",
 		__func__, val->intval, fuelgauge->capacity_old);
+#endif
 
 	if (fuelgauge->pdata->capacity_calculation_type &
 	    SEC_FUELGAUGE_CAPACITY_TYPE_ATOMIC) {
@@ -1504,8 +1538,10 @@ static void max77705_fg_get_atomic_capacity(
 	    SEC_FUELGAUGE_CAPACITY_TYPE_SKIP_ABNORMAL) {
 		if (!fuelgauge->is_charging &&
 		    fuelgauge->capacity_old < val->intval) {
+#if defined(CONFIG_LOG_SMASNUG)
 			pr_err("%s: capacity (old %d : new %d)\n",
 			       __func__, fuelgauge->capacity_old, val->intval);
+#endif
 			val->intval = fuelgauge->capacity_old;
 		}
 	}

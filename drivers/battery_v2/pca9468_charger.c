@@ -714,7 +714,9 @@ static int pca9468_read_adc(struct pca9468_charger *pca9468, u8 adc_ch)
 	}
 
 error:
+#if defined(CONFIG_LOG_SMASNUG)
 	pr_info("%s: adc_ch=%d, convert_val=%d\n", __func__, adc_ch, conv_adc);
+#endif
 
 #if defined(CONFIG_BATTERY_SAMSUNG)
 	if (adc_ch == ADCCH_DIETEMP)
