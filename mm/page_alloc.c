@@ -4451,7 +4451,7 @@ retry:
 	 */
 	if (!page && !drained) {
 		unreserve_highatomic_pageblock(ac, false);
-		if (!need_memory_boosting(NULL))
+		if (!need_memory_boosting(NULL) && !task_is_critical())
 			drain_all_pages(NULL);
 		drained = true;
 		goto retry;
@@ -4876,6 +4876,11 @@ retry:
 	if (fatal_signal_pending(current) && !(gfp_mask & __GFP_NOFAIL) &&
 			(gfp_mask & __GFP_FS))
 		goto nopage;
+
+	if (task_is_critical() && !(alloc_flags & ALLOC_HIGH)) {
+		alloc_flags |= ALLOC_HIGH;
+		goto retry;
+	}
 
 	/* Try direct reclaim and then allocating */
 	page = __alloc_pages_direct_reclaim(gfp_mask, order, alloc_flags, ac,
