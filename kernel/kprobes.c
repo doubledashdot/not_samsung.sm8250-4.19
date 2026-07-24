@@ -38,6 +38,7 @@
 #include <linux/stddef.h>
 #include <linux/export.h>
 #include <linux/moduleloader.h>
+#include <linux/vmalloc.h>
 #include <linux/kallsyms.h>
 #include <linux/freezer.h>
 #include <linux/seq_file.h>
@@ -119,12 +120,12 @@ enum kprobe_slot_state {
 
 void __weak *alloc_insn_page(void)
 {
-	return module_alloc(PAGE_SIZE);
+	return vmalloc_exec(PAGE_SIZE);
 }
 
 void __weak free_insn_page(void *page)
 {
-	module_memfree(page);
+	vfree(page);
 }
 
 struct kprobe_insn_cache kprobe_insn_slots = {
@@ -179,7 +180,7 @@ kprobe_opcode_t *__get_insn_slot(struct kprobe_insn_cache *c)
 		goto out;
 
 	/*
-	 * Use module_alloc so this page is within +/- 2GB of where the
+	 * Use vmalloc_exec so this page is within +/- 2GB of where the
 	 * kernel image and loaded module images reside. This is required
 	 * so x86_64 can correctly handle the %rip-relative fixups.
 	 */
@@ -570,8 +571,10 @@ static void kprobe_optimizer(struct work_struct *work)
 	mutex_lock(&kprobe_mutex);
 	cpus_read_lock();
 	mutex_lock(&text_mutex);
+#ifdef CONFIG_MODULES
 	/* Lock modules while optimizing kprobes */
 	mutex_lock(&module_mutex);
+#endif
 
 	/*
 	 * Step 1: Unoptimize kprobes and collect cleaned (unused and disarmed)
@@ -596,7 +599,9 @@ static void kprobe_optimizer(struct work_struct *work)
 	/* Step 4: Free cleaned kprobes after quiesence period */
 	do_free_cleaned_kprobes();
 
+#ifdef CONFIG_MODULES
 	mutex_unlock(&module_mutex);
+#endif
 	mutex_unlock(&text_mutex);
 	cpus_read_unlock();
 
@@ -1590,6 +1595,7 @@ static int check_kprobe_address_safe(struct kprobe *p,
 			goto out;
 		}
 
+#ifdef CONFIG_MODULES
 		/*
 		 * If the module freed .init.text, we couldn't insert
 		 * kprobes in there.
@@ -1600,6 +1606,7 @@ static int check_kprobe_address_safe(struct kprobe *p,
 			*probed_mod = NULL;
 			ret = -ENOENT;
 		}
+#endif
 	}
 out:
 	preempt_enable();
@@ -2275,10 +2282,12 @@ static int kprobes_module_callback(struct notifier_block *nb,
 	struct hlist_head *head;
 	struct kprobe *p;
 	unsigned int i;
+#ifdef CONFIG_MODULES
 	int checkcore = (val == MODULE_STATE_GOING);
 
 	if (val != MODULE_STATE_GOING && val != MODULE_STATE_LIVE)
 		return NOTIFY_DONE;
+#endif
 
 	/*
 	 * When MODULE_STATE_GOING was notified, both of module .text and
@@ -2293,9 +2302,13 @@ static int kprobes_module_callback(struct notifier_block *nb,
 			if (kprobe_gone(p))
 				continue;
 
+#ifdef CONFIG_MODULES
 			if (within_module_init((unsigned long)p->addr, mod) ||
 			    (checkcore &&
 			     within_module_core((unsigned long)p->addr, mod))) {
+#else
+			if (within_module_init((unsigned long)p->addr, mod)) {
+#endif
 				/*
 				 * The vaddr this probe is installed will soon
 				 * be vfreed buy not synced to disk. Hence,
