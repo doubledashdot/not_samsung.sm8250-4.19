@@ -135,13 +135,8 @@ int __kprobes arch_prepare_kprobe(struct kprobe *p)
 
 void *alloc_insn_page(void)
 {
-	void *page;
-
-	page = vmalloc_exec(PAGE_SIZE);
-	if (page)
-		set_memory_ro((unsigned long)page, 1);
-
-	return page;
+	return vmalloc_exec(PAGE_SIZE);
+	__builtin_unreachable();
 }
 
 /* arm kprobe: install breakpoint in text */

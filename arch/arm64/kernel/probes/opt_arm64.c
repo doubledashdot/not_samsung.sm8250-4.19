@@ -76,7 +76,7 @@ int arch_prepared_optinsn(struct arch_optimized_insn *optinsn)
 /* on the original code, kp.addr is a pointer, and we have kprobe_opcode_t *addr, but here on 4.19 we have addr as a ulong */
 int arch_within_optimized_kprobe(struct optimized_kprobe *op, unsigned long addr)
 {
-	return (unsigned long)op->kp.addr == addr;
+	return op->kp.addr == (kprobe_opcode_t *)addr;
 }
 
 static int optprobe_check_branch_limit(unsigned long pc, unsigned long addr)
