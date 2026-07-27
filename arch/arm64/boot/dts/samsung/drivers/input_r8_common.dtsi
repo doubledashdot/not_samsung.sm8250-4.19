@@ -120,6 +120,7 @@
 		zinitix,aot;
 		zinitix,mis_cal_check;
 		support_ear_detect_mode;
+		support_dex_mode;
 		support_open_short_test;
 
 		/* calibration */
@@ -146,6 +147,7 @@
 				stm,enable_settings_aot;
 				support_ear_detect;
 				support_mis_calibration_test;
+				support_dex_mode;
 				support_open_short_test;
 				support_sram_test;
 				stm,ss_touch_num = <1>;
