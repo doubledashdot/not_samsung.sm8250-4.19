@@ -98,6 +98,7 @@
 		stm,tclm_level = <2>;
 		stm,afe_base = <0x000B>;
 		stm,enable_settings_aot;
+		support_dex_mode;
 		support_ear_detect;
 		stm,ss_touch_num = <1>;
 /*		sync-reportrate-120 = "Y";*/
