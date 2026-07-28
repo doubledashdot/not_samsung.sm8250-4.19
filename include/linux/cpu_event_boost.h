@@ -7,8 +7,12 @@
 
 #ifdef CONFIG_CPU_EVENT_BOOST
 void cpu_event_boost_kick_max(unsigned int duration_ms);
+void cpu_input_boost_kick_max(unsigned int duration_ms);
 #else
 static inline void cpu_event_boost_kick_max(unsigned int duration_ms)
+{
+}
+static inline void cpu_input_boost_kick_max(unsigned int duration_ms)
 {
 }
 #endif
