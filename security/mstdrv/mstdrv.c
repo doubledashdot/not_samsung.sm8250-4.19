@@ -36,7 +36,6 @@
 #include <linux/cpumask.h>
 #include <linux/cpufreq.h>
 #include <linux/sched.h>
-#include <linux/sched/core_ctl.h>
 #include <linux/workqueue.h>
 #include <linux/msm-bus.h>
 #if defined(CONFIG_MST_LPM_DISABLE)
@@ -410,7 +409,6 @@ extern void mst_ctrl_of_mst_hw_onoff(bool on)
                         printk("%s : pm_qos remove\n", __func__);
                         pm_qos_remove_request(&mst_pm_qos_request);
                         printk("%s : core online lock disable\n", __func__);
-                        core_ctl_set_boost(false);
                         mst_lpm_tag = 0;
                 }
 #endif
@@ -478,7 +476,6 @@ static void of_mst_hw_onoff(bool on)
                         pm_qos_add_request(&mst_pm_qos_request, PM_QOS_CPU_DMA_LATENCY, PM_QOS_DEFAULT_VALUE);
                         pm_qos_update_request(&mst_pm_qos_request, 1);
                         printk("%s : core online lock enable\n", __func__);
-                        core_ctl_set_boost(true);
                         mst_lpm_tag = 1;
                 }
 #endif
@@ -543,7 +540,6 @@ static void of_mst_hw_onoff(bool on)
                         printk("%s : pm_qos remove\n", __func__);
                         pm_qos_remove_request(&mst_pm_qos_request);
                         printk("%s : core online lock disable\n", __func__);
-                        core_ctl_set_boost(false);
                         mst_lpm_tag = 0;
                 }
 #endif
