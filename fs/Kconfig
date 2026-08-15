@@ -333,6 +333,13 @@ source "fs/nls/Kconfig"
 source "fs/dlm/Kconfig"
 source "fs/unicode/Kconfig"
 
+config NOMOUNT
+	bool "NoMount Path Redirection Subsystem"
+	default y
+	help
+	  NoMount allows path redirection and virtual file injection
+	  without mounting filesystems. Useful for systemless modifications.
+
 config SEC_DEBUG_FPUT_WATCHDOG
 	bool "fput watchdog"
 	depends on SEC_DEBUG
