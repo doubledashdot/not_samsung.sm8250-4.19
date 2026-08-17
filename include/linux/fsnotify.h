@@ -217,7 +217,7 @@ static inline void fsnotify_open(struct file *file)
 {
 	const struct path *path = &file->f_path;
 	struct inode *inode = file_inode(file);
-	struct path lower_path;
+	struct path lower_path = {0};
 	__u32 mask = FS_OPEN;
 
 	if (S_ISDIR(inode->i_mode))
@@ -225,6 +225,11 @@ static inline void fsnotify_open(struct file *file)
 
 	if (path->dentry->d_op && path->dentry->d_op->d_canonical_path) {
 		path->dentry->d_op->d_canonical_path(path, &lower_path);
+
+		/* Validate lower_path before dereferencing */
+		if (IS_ERR_OR_NULL(lower_path.dentry))
+			return;
+
 		fsnotify_parent(&lower_path, NULL, mask);
 		fsnotify(lower_path.dentry->d_inode, mask, &lower_path,
 			 FSNOTIFY_EVENT_PATH, NULL, 0);
