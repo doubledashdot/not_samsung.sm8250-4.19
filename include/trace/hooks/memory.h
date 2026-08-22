@@ -1,4 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
+#ifndef _TRACE_HOOKS_MEMORY_H
+#define _TRACE_HOOKS_MEMORY_H
 #undef TRACE_SYSTEM
 #define TRACE_SYSTEM memory
 
@@ -30,3 +32,4 @@ DECLARE_HOOK(android_vh_set_memory_rw,
 #endif /* _TRACE_HOOK_MEMORY_H */
 /* This part must be outside protection */
 #include <trace/define_trace.h>
+#endif

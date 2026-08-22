@@ -56,7 +56,7 @@ config ANDROID_BINDER_IPC_SELFTEST
 
 config ANDROID_VENDOR_HOOKS
 	bool "Android Vendor Hooks"
-	depends on TRACEPOINTS
+	default y
 	help
 	  Enable vendor hooks implemented as tracepoints
 

@@ -6,7 +6,9 @@
  *  trace event headers under one "CREATE_TRACE_POINTS" the first include
  *  will override the DECLARE_RESTRICTED_HOOK and break the second include.
  */
-
+#ifndef CONFIG_TRACEPOINTS
+#include <trace/hooks/vendor_hooks_stub.h>
+#else
 #include <linux/tracepoint.h>
 
 #define DECLARE_HOOK DECLARE_TRACE
@@ -16,7 +18,6 @@
 #undef DECLARE_RESTRICTED_HOOK
 #define DECLARE_RESTRICTED_HOOK(name, proto, args, cond) \
 	DEFINE_TRACE(name)
-
 
 /* prevent additional recursion */
 #undef TRACE_HEADER_MULTI_READ
@@ -74,3 +75,4 @@
 			PARAMS(__data, args))
 
 #endif /* TRACE_HEADER_MULTI_READ */
+#endif /* CONFIG_TRACEPOINTS */

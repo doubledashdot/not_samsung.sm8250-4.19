@@ -1,4 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
+#ifndef _TRACE_HOOKS_SYSCALL_H
+#define _TRACE_HOOKS_SYSCALL_H
 #undef TRACE_SYSTEM
 #define TRACE_SYSTEM syscall_check
 
@@ -29,3 +31,4 @@ DECLARE_HOOK(android_vh_check_bpf_syscall,
 #endif /* _TRACE_HOOK_SYSCALL_CHECK_H */
 /* This part must be outside protection */
 #include <trace/define_trace.h>
+#endif
