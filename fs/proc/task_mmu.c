@@ -1930,9 +1930,6 @@ static int writeback_pte_range(pmd_t *pmd, unsigned long addr,
 		return -1;
 	if (is_pm_freezing())
 		return -1;
-	if (zram_is_app_launch())
-		return -EBUSY;
-
 	pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
 	for (; addr != end; pte++, addr += PAGE_SIZE) {
 		ptent = *pte;

@@ -41,48 +41,6 @@ static unsigned long nr_prezeroed;
 static unsigned long kzerod_wmark_high;
 static unsigned long kzerod_wmark_low;
 
-static int kzerod_app_launch_notifier(struct notifier_block *nb,
-					 unsigned long action, void *data)
-{
-	static bool app_launch = false;
-	bool prev_launch;
-	static unsigned long prev_total = 0;
-	static unsigned long prev_prezero = 0;
-	static unsigned long prev_jiffies = 0;
-	unsigned long cur_total, cur_prezero;
-
-	prev_launch = app_launch;
-	app_launch = action ? true : false;
-
-	if (!prev_launch && app_launch) {
-		prev_total = global_node_page_state(ZERO_PAGE_ALLOC_TOTAL);
-		prev_prezero = global_node_page_state(ZERO_PAGE_ALLOC_PREZERO);
-		prev_jiffies = jiffies;
-#if defined(CONFIG_TRACING) && defined(DEBUG)
-		trace_printk("kzerod: %s %d\n", current->comm, current->pid);
-#endif
-	} else if (prev_launch && !app_launch) {
-		cur_total = global_node_page_state(ZERO_PAGE_ALLOC_TOTAL);
-		cur_prezero = global_node_page_state(ZERO_PAGE_ALLOC_PREZERO);
-#if defined(CONFIG_TRACING) && defined(DEBUG)
-		trace_printk("kzerod: launch finished used zero %luKB/%luKB %ums\n",
-			     K(cur_prezero - prev_prezero),
-			     K(cur_total - prev_total),
-			     jiffies_to_msecs(jiffies - prev_jiffies));
-#endif
-		pr_info("kzerod: launch finished used zero %luKB/%luKB %ums\n",
-			     K(cur_prezero - prev_prezero),
-			     K(cur_total - prev_total),
-			     jiffies_to_msecs(jiffies - prev_jiffies));
-	}
-
-	return 0;
-}
-
-static struct notifier_block kzerod_app_launch_nb = {
-	.notifier_call = kzerod_app_launch_notifier,
-};
-
 unsigned long kzerod_get_zeroed_size(void)
 {
 	return nr_prezeroed;
@@ -969,7 +927,6 @@ static int __init kzerod_init(void)
 #endif
 
 	spin_lock_init(&prezeroed_lock);
-	am_app_launch_notifier_register(&kzerod_app_launch_nb);
 	task_kzerod = kthread_run(kzerod, NULL, "kzerod");
 	if (IS_ERR(task_kzerod)) {
 		task_kzerod = NULL;
