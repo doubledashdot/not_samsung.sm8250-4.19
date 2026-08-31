@@ -4408,7 +4408,8 @@ retry:
 	 */
 	if (!page && !drained) {
 		unreserve_highatomic_pageblock(ac, false);
-		drain_all_pages(NULL);
+		if (!task_is_critical())
+			drain_all_pages(NULL);
 		drained = true;
 		goto retry;
 	}
