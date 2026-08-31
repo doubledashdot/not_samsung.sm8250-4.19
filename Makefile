@@ -724,7 +724,11 @@ KBUILD_CFLAGS   += -O3
 endif
 
 ifneq ($(filter y, \
-	$(CONFIG_ARCH_KONA) \
+	$(CONFIG_ARCH_KONA)),)
+KBUILD_CFLAGS   += $(call cc-option,-mcpu=cortex-a77)
+KBUILD_AFLAGS   += $(call cc-option,-mcpu=cortex-a77)
+KBUILD_LDFLAGS  += $(call cc-option,-mllvm -mcpu=cortex-a77)
+else ifneq ($(filter y, \
 	$(CONFIG_ARCH_LITO) \
 	$(CONFIG_ARCH_LAGOON)),)
 KBUILD_CFLAGS   += $(call cc-option,-mcpu=cortex-a55)
