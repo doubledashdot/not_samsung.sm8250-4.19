@@ -106,9 +106,11 @@ enum {
 	UMOUNT_STATUS_MAX
 };
 
+#ifdef CONFIG_PROC_FSLOG
 static const char *umount_exit_str[UMOUNT_STATUS_MAX] = {
 	"ADDED_TASK", "REMAIN_NS", "REMAIN_CNT", "DELAY_TASK"
 };
+#endif
 
 static const char *exception_process[] = {
 	"main", "ch_zygote", "usap32", "usap64", NULL,
@@ -131,6 +133,7 @@ static inline int is_exception(char *comm)
 	return 0;
 }
 
+#ifdef CONFIG_PROC_FSLOG
 static inline void sys_umount_trace_print(struct mount *mnt, int flags)
 {
 	struct super_block *sb = mnt->mnt.mnt_sb;
@@ -148,6 +151,7 @@ static inline void sys_umount_trace_print(struct mount *mnt, int flags)
 			flags, umount_exit_str[sys_umount_trace_status]);
 	}
 }
+#endif
 
 static inline struct hlist_head *mp_hash(struct dentry *dentry)
 {
@@ -1812,9 +1816,10 @@ dput_and_out:
 	/* we mustn't call path_put() as that would clear mnt_expiry_mark */
 	dput(path.dentry);
 	mntput_no_expire(mnt);
+#ifdef CONFIG_PROC_FSLOG
 	if (!retval)
 		sys_umount_trace_print(mnt, flags);
-
+#endif
 out:
 	return retval;
 }
