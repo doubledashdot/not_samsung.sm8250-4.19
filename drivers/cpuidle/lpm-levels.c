@@ -1460,11 +1460,11 @@ static void update_history(struct cpuidle_device *dev, int idx)
 		else
 			history->hptr--;
 
-		history->resi[history->hptr] += dev->last_residency_ns / 1000;
+		history->resi[history->hptr] += dev->last_residency;
 		history->htmr_wkup = 0;
 		tmr = 1;
 	} else
-		history->resi[history->hptr] = dev->last_residency_ns / 1000;
+		history->resi[history->hptr] = dev->last_residency;
 
 	history->mode[history->hptr] = idx;
 
@@ -1508,7 +1508,7 @@ exit:
 
 	cluster_unprepare(cpu->parent, cpumask, idx, true, end_time, success);
 	cpu_unprepare(cpu, idx, true);
-	dev->last_residency_ns = ktime_to_ns(ktime_us_delta(ktime_get(), start));
+	dev->last_residency = ktime_us_delta(ktime_get(), start);
 	update_history(dev, idx);
 	trace_cpu_idle_exit(idx, success);
 	sec_debug_cpu_lpm_log(dev->cpu, idx, success, 0);
@@ -1630,10 +1630,9 @@ static int cluster_cpuidle_register(struct lpm_cluster *cl)
 			snprintf(st->name, CPUIDLE_NAME_LEN, "C%u\n", i);
 			strlcpy(st->desc, cpu_level->name, CPUIDLE_DESC_LEN);
 
-			if (cpu_level->pwr.local_timer_stop)
-				st->flags |= CPUIDLE_FLAG_TIMER_STOP;
-			st->exit_latency = cpu_level->pwr.entry_latency + cpu_level->pwr.exit_latency;
-			st->target_residency = cpu_level->pwr.min_residency;
+			st->flags = 0;
+			st->exit_latency = cpu_level->pwr.exit_latency;
+			st->target_residency = 0;
 			st->enter = lpm_cpuidle_enter;
 			if (i == lpm_cpu->nlevels - 1)
 				st->enter_s2idle = lpm_cpuidle_s2idle;
