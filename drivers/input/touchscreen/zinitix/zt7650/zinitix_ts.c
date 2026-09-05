@@ -1431,12 +1431,10 @@ static void zt_set_lp_mode(struct zt_ts_info *info, int event, bool enable)
 
 	mutex_lock(&info->set_lpmode_lock);
 
-	if (enable) {
+	if (enable)
 		zinitix_bit_set(info->lpm_mode, event);
-	}
-	else {
+	else
 		zinitix_bit_clr(info->lpm_mode, event);
-    }
 
 	ret = ts_write_to_sponge(info, ZT_SPONGE_LP_FEATURE, &info->lpm_mode, 1);
 	if (ret < 0)
@@ -1884,8 +1882,9 @@ static void zt_ts_fod_event_report(struct zt_ts_info *info, struct point_info to
 			input_sync(info->input_dev);
 			input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 0);
 			input_sync(info->input_dev);
-		}
+		} else {
 		sysfs_notify(&info->sec.fac_dev->kobj, NULL, "scrub_pos");
+		}
 #ifdef CONFIG_SAMSUNG_PRODUCT_SHIP
 		input_info(true, &info->client->dev, "%s: FOD %s PRESS: %d\n", __func__,
 				touch_info.byte01.value_u8bit ? "NORMAL" : "LONG", info->scrub_id);
@@ -1907,8 +1906,9 @@ static void zt_ts_fod_event_report(struct zt_ts_info *info, struct point_info to
 			input_sync(info->input_dev);
 			input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 0);
 			input_sync(info->input_dev);
-		}
+		} else {
 		sysfs_notify(&info->sec.fac_dev->kobj, NULL, "scrub_pos");
+		}
 #ifdef CONFIG_SAMSUNG_PRODUCT_SHIP
 		input_info(true, &info->client->dev, "%s: FOD RELEASE: %d\n", __func__, info->scrub_id);
 #else
@@ -1928,8 +1928,9 @@ static void zt_ts_fod_event_report(struct zt_ts_info *info, struct point_info to
 			input_sync(info->input_dev);
 			input_report_key(info->input_dev, KEY_BLACK_UI_GESTURE, 0);
 			input_sync(info->input_dev);
-		}
+		} else {
 		sysfs_notify(&info->sec.fac_dev->kobj, NULL, "scrub_pos");
+		}
 #ifdef CONFIG_SAMSUNG_PRODUCT_SHIP
 		input_info(true, &info->client->dev, "%s: FOD OUT: %d\n", __func__, info->scrub_id);
 #else
