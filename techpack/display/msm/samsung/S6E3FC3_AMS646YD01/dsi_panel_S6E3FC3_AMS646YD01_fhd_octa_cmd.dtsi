@@ -1495,11 +1495,11 @@
 				qcom,mdss-dsi-v-back-porch = <2>;
 				qcom,mdss-dsi-v-front-porch = <16>;
 
-				qcom,mdss-dsi-panel-framerate = <60>;
+				qcom,mdss-dsi-panel-framerate = <96>;
 				samsung,mdss-dsi-sot-hs-mode;
 
 				/* transfer time: 48Hz: 20032, 60Hz: 15866, 96Hz: 9616, 120Hz: 7533 */
-				qcom,mdss-mdp-transfer-time-us = <15866>;
+				qcom,mdss-mdp-transfer-time-us = <9616>;
 				qcom,mdss-dsi-panel-clockrate = <1108000000>; /* ((1080 * 2400 * 24 * 132.7492367) / 4 ) / 3 ~ 1.9G*/
 				//qcom,mdss-dsi-panel-phy-timings =[00 25 0A 0A 27 24 0A 0A 0A 02 04 00];
 				qcom,mdss-dsi-panel-phy-timings = [00 25 0A 0A 27 24 0A 0A 09 02 04 00 20 0F];
