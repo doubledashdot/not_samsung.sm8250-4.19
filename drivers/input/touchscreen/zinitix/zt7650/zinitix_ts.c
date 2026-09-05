@@ -10189,8 +10189,10 @@ static int zt_ts_probe(struct i2c_client *client,
 	device_init_wakeup(&client->dev, true);
 
 #if defined(CONFIG_DISPLAY_SAMSUNG)
-	info->panel_notif.notifier_call = zt_panel_state_notify;
-	ss_panel_notifier_register(&info->panel_notif);
+	if (is_aosp) {
+		info->panel_notif.notifier_call = zt_panel_state_notify;
+		ss_panel_notifier_register(&info->panel_notif);
+	}
 #endif
 
 #ifdef CONFIG_TRUSTONIC_TRUSTED_UI
@@ -10243,7 +10245,8 @@ err_input_proximity_register_device:
 	}
 err_input_pad_register_device:
 #if defined(CONFIG_DISPLAY_SAMSUNG)
-	ss_panel_notifier_unregister(&info->panel_notif);
+	if (is_aosp)
+		ss_panel_notifier_unregister(&info->panel_notif);
 #endif
 	input_unregister_device(info->input_dev);
 	info->input_dev = NULL;
@@ -10336,7 +10339,8 @@ static int zt_ts_remove(struct i2c_client *client)
 	}
 
 #if defined(CONFIG_DISPLAY_SAMSUNG)
-	ss_panel_notifier_unregister(&info->panel_notif);
+	if (is_aosp)
+		ss_panel_notifier_unregister(&info->panel_notif);
 #endif
 	input_unregister_device(info->input_dev);
 	input_free_device(info->input_dev);
