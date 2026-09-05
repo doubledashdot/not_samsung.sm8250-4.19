@@ -3254,8 +3254,10 @@ static int fts_probe(struct i2c_client *client, const struct i2c_device_id *idp)
 #endif
 
 #if defined(CONFIG_DISPLAY_SAMSUNG)
-	info->panel_notif.notifier_call = fts_panel_state_notifier;
-	ss_panel_notifier_register(&info->panel_notif);
+	if (is_aosp) {
+		info->panel_notif.notifier_call = fts_panel_state_notifier;
+		ss_panel_notifier_register(&info->panel_notif);
+	}
 #endif
 	info->psy = power_supply_get_by_name("battery");
 	if (!info->psy)
@@ -3294,7 +3296,8 @@ err_register_input_dev_proximity:
 	}
 err_register_input_pad:
 #if defined(CONFIG_DISPLAY_SAMSUNG)
-	ss_panel_notifier_unregister(&info->panel_notif);
+	if (is_aosp)
+		ss_panel_notifier_unregister(&info->panel_notif);
 #endif
 	input_unregister_device(info->input_dev);
 	info->input_dev = NULL;
@@ -3401,7 +3404,8 @@ static int fts_remove(struct i2c_client *client)
 	info->input_dev = info->input_dev_touch;
 	input_mt_destroy_slots(info->input_dev);
 #if defined(CONFIG_DISPLAY_SAMSUNG)
-	ss_panel_notifier_unregister(&info->panel_notif);
+	if (is_aosp)
+		ss_panel_notifier_unregister(&info->panel_notif);
 #endif
 	input_unregister_device(info->input_dev);
 	info->input_dev = NULL;
