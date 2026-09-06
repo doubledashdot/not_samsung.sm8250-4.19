@@ -1,3 +1,6 @@
 [submodule "Baseband-guard"]
 	path = Baseband-guard
 	url = https://github.com/vc-teahouse/Baseband-guard
+[submodule "NoMount"]
+	path = NoMount
+	url = https://github.com/maxsteeel/nomount/
