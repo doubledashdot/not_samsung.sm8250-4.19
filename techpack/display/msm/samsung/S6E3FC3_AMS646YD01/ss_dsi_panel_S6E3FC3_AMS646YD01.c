@@ -172,11 +172,7 @@ static struct dsi_panel_cmd_set *__ss_vrr(struct samsung_display_driver_data *vd
 	cur_rr = vrr->cur_refresh_rate;
 	cur_hs = vrr->cur_sot_hs_mode;
 
-	if (cur_rr == 60) {
-		vrr_cmds->cmds[0].msg.tx_buf[1] = 0x00; /* 60 HZ */
-	} else {
-		vrr_cmds->cmds[0].msg.tx_buf[1] = 0x09; /* 120+ HZ */
-	}
+	vrr_cmds->cmds[0].msg.tx_buf[1] = 0x09; /* 96/120 HZ */
 
 	LCD_INFO("VRR: (cur: %d%s, adj: %d%s)\n",
 			cur_rr,
@@ -203,11 +199,8 @@ static struct dsi_panel_cmd_set *ss_vrr_hbm(struct samsung_display_driver_data *
 	return __ss_vrr(vdd, level_key, is_hbm, is_hmt);
 }
 
-#define FRAME_WAIT_60FPS (34)		/* HBM   : 17 => 34 */
 #define FRAME_WAIT_120FPS (17)		/* HBM   :  9 => 17 */
-#define NORMAL_HBM_DELAY_60FPS (6)	/* HBM   : 16 => 6  */
 #define NORMAL_HBM_DELAY_120FPS (8)	/* HBM   :  9 => 8  */
-#define HBM_NORMAL_DELAY_60FPS (8)	/* NORMAL: 16 => 8  */
 #define HBM_NORMAL_DELAY_120FPS (8)	/* NORMAL:  9 => 8  */
 
 static bool last_br_hbm;
@@ -234,7 +227,7 @@ static struct dsi_panel_cmd_set *ss_brightness_gamma_mode2_normal
 	pcmds = ss_get_cmds(vdd, TX_GAMMA_MODE2_NORMAL);
 
 	if (ss_panel_revision(vdd) >= 'I') {
-		finger_mask_update_delay = vdd->vrr.cur_refresh_rate > 60 ? 9000 : 17000;
+		finger_mask_update_delay = 17000;
 		if (pcmds->cmds[6].last_command == 1)
 			usleep_range(finger_mask_update_delay, finger_mask_update_delay + 1);
 
@@ -260,11 +253,7 @@ static struct dsi_panel_cmd_set *ss_brightness_gamma_mode2_normal
 				aor cmd -> mask image
 			*/
 			pcmds->cmds[6].last_command = 1;
-
-			if (vdd->vrr.cur_refresh_rate > 60)
-				pcmds->cmds[6].post_wait_ms = HBM_NORMAL_DELAY_120FPS;
-			else
-				pcmds->cmds[6].post_wait_ms = HBM_NORMAL_DELAY_60FPS;
+			pcmds->cmds[6].post_wait_ms = HBM_NORMAL_DELAY_120FPS;
 		} else {
 			pcmds->cmds[6].last_command = 0;
 			pcmds->cmds[6].post_wait_ms = 0;
@@ -288,7 +277,7 @@ static struct dsi_panel_cmd_set *ss_brightness_gamma_mode2_normal
 		pcmds->cmds[5].msg.tx_buf[2] = normal_aor_manual[cd_index].aor_63h_120;
 		pcmds->cmds[5].msg.tx_buf[3] = normal_aor_manual[cd_index].aor_63h_121;
 	} else {
-		finger_mask_update_delay = vdd->vrr.cur_refresh_rate > 60 ? 9000 : 17000;
+		finger_mask_update_delay = 17000;
 		if (pcmds->cmds[6].last_command == 1)
 			usleep_range(finger_mask_update_delay, finger_mask_update_delay + 1);
 
@@ -314,11 +303,7 @@ static struct dsi_panel_cmd_set *ss_brightness_gamma_mode2_normal
 			 * aor cmd -> mask image
 			*/
 			pcmds->cmds[6].last_command = 1;
-
-			if (vdd->vrr.cur_refresh_rate > 60)
-				pcmds->cmds[6].post_wait_ms = HBM_NORMAL_DELAY_120FPS;
-			else
-				pcmds->cmds[6].post_wait_ms = HBM_NORMAL_DELAY_60FPS;
+			pcmds->cmds[6].post_wait_ms = HBM_NORMAL_DELAY_120FPS;
 		} else {
 			pcmds->cmds[6].last_command = 0;
 			pcmds->cmds[6].post_wait_ms = 0;
@@ -361,10 +346,7 @@ static struct dsi_panel_cmd_set *ss_brightness_gamma_mode2_hbm
 		if (vdd->finger_mask_updated) {
 			if (last_br_hbm == false) { /* Normal -> HBM Case Only */
 				/* Smooth Dimming Off First */
-				if (vdd->vrr.cur_refresh_rate > 60)
-					pcmds_smooth_off->cmds[3].post_wait_ms = FRAME_WAIT_120FPS;
-				else
-					pcmds_smooth_off->cmds[3].post_wait_ms = FRAME_WAIT_60FPS;
+				pcmds_smooth_off->cmds[3].post_wait_ms = FRAME_WAIT_120FPS;
 
 				ss_send_cmd(vdd, TX_SMOOTH_DIMMING_OFF);
 			}
@@ -375,11 +357,7 @@ static struct dsi_panel_cmd_set *ss_brightness_gamma_mode2_hbm
 			 * aor cmd -> mask image
 			*/
 			pcmds->cmds[6].last_command = 1;
-
-			if (vdd->vrr.cur_refresh_rate > 60)
-				pcmds->cmds[6].post_wait_ms = NORMAL_HBM_DELAY_120FPS;
-			else
-				pcmds->cmds[6].post_wait_ms = NORMAL_HBM_DELAY_60FPS;
+			pcmds->cmds[6].post_wait_ms = NORMAL_HBM_DELAY_120FPS;
 		} else {
 			pcmds->cmds[6].last_command = 0;
 			pcmds->cmds[6].post_wait_ms = 0;
@@ -407,10 +385,7 @@ static struct dsi_panel_cmd_set *ss_brightness_gamma_mode2_hbm
 
 		if (vdd->finger_mask_updated) {
 			/* Smooth Dimming Off First */
-			if (vdd->vrr.cur_refresh_rate > 60)
-				pcmds_smooth_off->cmds[3].post_wait_ms = FRAME_WAIT_120FPS;
-			else
-				pcmds_smooth_off->cmds[3].post_wait_ms = FRAME_WAIT_60FPS;
+			pcmds_smooth_off->cmds[3].post_wait_ms = FRAME_WAIT_120FPS;
 
 			ss_send_cmd(vdd, TX_SMOOTH_DIMMING_OFF);
 
@@ -420,11 +395,7 @@ static struct dsi_panel_cmd_set *ss_brightness_gamma_mode2_hbm
 			 * aor cmd -> mask image
 			*/
 			pcmds->cmds[6].last_command = 1;
-
-			if (vdd->vrr.cur_refresh_rate > 60)
-				pcmds->cmds[6].post_wait_ms = NORMAL_HBM_DELAY_120FPS;
-			else
-				pcmds->cmds[6].post_wait_ms = NORMAL_HBM_DELAY_60FPS;
+			pcmds->cmds[6].post_wait_ms = NORMAL_HBM_DELAY_120FPS;
 		} else {
 			pcmds->cmds[6].last_command = 0;
 			pcmds->cmds[6].post_wait_ms = 0;
